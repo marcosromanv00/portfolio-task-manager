@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Matter from "matter-js";
 import { Task } from "@/lib/types";
 
@@ -10,7 +10,7 @@ export const useBubblePhysics = (
   },
 ) => {
   const engineRef = useRef<Matter.Engine | null>(null);
-  const renderRef = useRef<Matter.Render | null>(null);
+
   const runnerRef = useRef<Matter.Runner | null>(null);
 
   // Keep track of task IDs to body IDs for syncing
@@ -83,47 +83,68 @@ export const useBubblePhysics = (
 
     // Drag events
     if (onDragEnd) {
-      Matter.Events.on(mouseConstraint, "enddrag", (event: any) => {
-        const body = event.body;
-        if (body && body.label && body.label.startsWith("task-")) {
-          const taskId = body.label.replace("task-", "");
-          onDragEnd(taskId, body.position);
-        }
-      });
+      Matter.Events.on(
+        mouseConstraint,
+        "enddrag",
+        (e: Matter.IEvent<Matter.MouseConstraint>) => {
+          const event = e as Matter.IEvent<Matter.MouseConstraint> & {
+            body: Matter.Body;
+          };
+          const body = event.body;
+          if (body && body.label && body.label.startsWith("task-")) {
+            const taskId = body.label.replace("task-", "");
+            onDragEnd(taskId, body.position);
+          }
+        },
+      );
     }
 
     // Click Detection
     if (onTaskClick) {
       let startPoint = { x: 0, y: 0 };
 
-      Matter.Events.on(mouseConstraint, "mousedown", (event: any) => {
-        startPoint = { ...event.mouse.position };
-      });
+      Matter.Events.on(
+        mouseConstraint,
+        "mousedown",
+        (e: Matter.IEvent<Matter.MouseConstraint>) => {
+          const event = e as Matter.IEvent<Matter.MouseConstraint> & {
+            mouse: Matter.Mouse;
+          };
+          startPoint = { ...event.mouse.position };
+        },
+      );
 
-      Matter.Events.on(mouseConstraint, "mouseup", (event: any) => {
-        const endPoint = event.mouse.position;
-        const dist = Math.hypot(
-          endPoint.x - startPoint.x,
-          endPoint.y - startPoint.y,
-        );
+      Matter.Events.on(
+        mouseConstraint,
+        "mouseup",
+        (e: Matter.IEvent<Matter.MouseConstraint>) => {
+          const event = e as Matter.IEvent<Matter.MouseConstraint> & {
+            mouse: Matter.Mouse;
+          };
+          const endPoint = event.mouse.position;
+          const dist = Math.hypot(
+            endPoint.x - startPoint.x,
+            endPoint.y - startPoint.y,
+          );
 
-        if (dist < 5) {
-          // Threshold for click
-          // We need to find if a body was clicked.
-          // MouseConstraint doesn't always have body on mouseup if we didn't drag it?
-          // Actually Query.point is safer.
-          const bodies = Matter.Composite.allBodies(engine.world);
-          const clickedBodies = Matter.Query.point(bodies, endPoint);
+          if (dist < 5) {
+            // Threshold for click
+            // We need to find if a body was clicked.
+            // MouseConstraint doesn't always have body on mouseup if we didn't drag it?
+            // Actually Query.point is safer.
+            const bodies = Matter.Composite.allBodies(engine.world);
+            const clickedBodies = Matter.Query.point(bodies, endPoint);
 
-          for (const body of clickedBodies) {
-            if (body.label && body.label.startsWith("task-")) {
-              const taskId = body.label.replace("task-", "");
-              onTaskClick(taskId);
-              break; // Handle only top one
+            for (const body of clickedBodies) {
+              if (body.label && body.label.startsWith("task-")) {
+                const taskId = body.label.replace("task-", "");
+                onTaskClick(taskId);
+                break; // Handle only top one
+              }
             }
           }
-        }
-      });
+        },
+      );
     }
 
     // 4. Runner
@@ -136,7 +157,6 @@ export const useBubblePhysics = (
     // mouseConstraint.mouse.element.removeEventListener("DOMMouseScroll", mouseConstraint.mouse.mousewheel);
 
     return () => {
-      Matter.Render.stop(renderRef.current!);
       Matter.Runner.stop(runner);
       Matter.Engine.clear(engine);
       engineRef.current = null;
