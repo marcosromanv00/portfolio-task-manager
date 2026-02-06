@@ -18,31 +18,19 @@ export const metadata: Metadata = {
     "A physics-based task manager for a more organic productivity flow",
 };
 
-import { Navigation } from "@/components/Navigation";
-import { useUIStore } from "@/store/useUIStore";
-import { cn } from "@/lib/utils";
+import { DashboardLayout } from "@/components/DashboardLayout";
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { isSidebarExpanded } = useUIStore();
-
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen relative`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen relative bg-slate-950`}
       >
-        <Navigation />
-        <main
-          className={cn(
-            "pr-4 py-4 h-screen overflow-y-auto scroll-smooth transition-all duration-300",
-            isSidebarExpanded ? "pl-68" : "pl-24",
-          )}
-        >
-          {children}
-        </main>
+        <DashboardLayout>{children}</DashboardLayout>
       </body>
     </html>
   );
