@@ -14,10 +14,27 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Task } from "@/lib/types";
 
 type SortField = "title" | "status" | "priority" | "dueAt";
 type SortOrder = "asc" | "desc";
+
+const SortIcon = ({
+  field,
+  currentSortField,
+  sortOrder,
+}: {
+  field: SortField;
+  currentSortField: SortField;
+  sortOrder: SortOrder;
+}) => {
+  if (currentSortField !== field)
+    return <ArrowUpDown className="w-3 h-3 ml-1 opacity-50" />;
+  return sortOrder === "asc" ? (
+    <ArrowUp className="w-3 h-3 ml-1 text-cyan-400" />
+  ) : (
+    <ArrowDown className="w-3 h-3 ml-1 text-cyan-400" />
+  );
+};
 
 export default function ListPage() {
   const { tasks, updateTask, deleteTask } = useTaskStore();
@@ -27,7 +44,7 @@ export default function ListPage() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
   const filteredAndSortedTasks = useMemo(() => {
-    let result = tasks.filter((task) => {
+    const result = tasks.filter((task) => {
       const matchesSearch = task.title
         .toLowerCase()
         .includes(search.toLowerCase());
@@ -77,16 +94,6 @@ export default function ListPage() {
       setSortField(field);
       setSortOrder("asc");
     }
-  };
-
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field)
-      return <ArrowUpDown className="w-3 h-3 ml-1 opacity-50" />;
-    return sortOrder === "asc" ? (
-      <ArrowUp className="w-3 h-3 ml-1 text-cyan-400" />
-    ) : (
-      <ArrowDown className="w-3 h-3 ml-1 text-cyan-400" />
-    );
   };
 
   return (
@@ -143,19 +150,34 @@ export default function ListPage() {
                 onClick={() => handleSort("title")}
                 className="flex items-center hover:text-white transition-colors text-left"
               >
-                Task <SortIcon field="title" />
+                Task{" "}
+                <SortIcon
+                  field="title"
+                  currentSortField={sortField}
+                  sortOrder={sortOrder}
+                />
               </button>
               <button
                 onClick={() => handleSort("dueAt")}
                 className="hidden md:flex items-center hover:text-white transition-colors"
               >
-                Due Date <SortIcon field="dueAt" />
+                Due Date{" "}
+                <SortIcon
+                  field="dueAt"
+                  currentSortField={sortField}
+                  sortOrder={sortOrder}
+                />
               </button>
               <button
                 onClick={() => handleSort("priority")}
                 className="flex items-center hover:text-white transition-colors justify-end pr-8"
               >
-                Props <SortIcon field="priority" />
+                Props{" "}
+                <SortIcon
+                  field="priority"
+                  currentSortField={sortField}
+                  sortOrder={sortOrder}
+                />
               </button>
             </div>
             <div>
