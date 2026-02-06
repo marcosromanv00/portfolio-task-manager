@@ -1,10 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import React, { useState } from "react";
+import { X, Calendar } from "lucide-react";
 import { useTaskStore } from "@/store/useTaskStore";
 import { Priority, TaskStatus, Task, TaskCategory } from "@/lib/types";
-import { getBubbleRadius, STATUS_COLORS, getTaskColor } from "@/lib/utils";
+import { getBubbleRadius, getTaskColor } from "@/lib/utils";
+
+// Helper to format date for datetime-local input
+const formatDateForInput = (date: Date | undefined): string => {
+  if (!date) return "";
+  const d = new Date(date);
+  const offset = d.getTimezoneOffset();
+  const localDate = new Date(d.getTime() - offset * 60 * 1000);
+  return localDate.toISOString().slice(0, 16);
+};
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -20,33 +29,23 @@ export default function TaskModal({
   const addTask = useTaskStore((state) => state.addTask);
   const updateTask = useTaskStore((state) => state.updateTask);
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<TaskCategory | "">("");
-  const [relation, setRelation] = useState("");
-  const [priority, setPriority] = useState<Priority>("medium");
-  const [status, setStatus] = useState<TaskStatus>("todo");
-
-  // Reset or populate form when opening
-  useEffect(() => {
-    if (isOpen) {
-      if (taskToEdit) {
-        setTitle(taskToEdit.title);
-        setDescription(taskToEdit.description || "");
-        setPriority(taskToEdit.priority);
-        setStatus(taskToEdit.status);
-        setCategory(taskToEdit.category || "");
-        setRelation(taskToEdit.relation || "");
-      } else {
-        setTitle("");
-        setDescription("");
-        setPriority("medium");
-        setStatus("todo");
-        setCategory("");
-        setRelation("");
-      }
-    }
-  }, [isOpen, taskToEdit]);
+  // Initialize state with values from taskToEdit or defaults
+  // Parent should use key={taskToEdit?.id ?? 'new'} to reset form on task change
+  const [title, setTitle] = useState(taskToEdit?.title ?? "");
+  const [description, setDescription] = useState(taskToEdit?.description ?? "");
+  const [category, setCategory] = useState<TaskCategory | "">(
+    taskToEdit?.category ?? "",
+  );
+  const [relation, setRelation] = useState(taskToEdit?.relation ?? "");
+  const [priority, setPriority] = useState<Priority>(
+    taskToEdit?.priority ?? "medium",
+  );
+  const [status, setStatus] = useState<TaskStatus>(
+    taskToEdit?.status ?? "todo",
+  );
+  const [dueAt, setDueAt] = useState<string>(
+    formatDateForInput(taskToEdit?.dueAt),
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +57,9 @@ export default function TaskModal({
       category === "" ? undefined : (category as TaskCategory);
     const finalColor = getTaskColor(status, finalCategory);
 
+    // Parse dueAt if provided
+    const parsedDueAt = dueAt ? new Date(dueAt) : undefined;
+
     if (taskToEdit) {
       // Update existing
       updateTask(taskToEdit.id, {
@@ -67,6 +69,7 @@ export default function TaskModal({
         priority,
         category: finalCategory,
         relation,
+        dueAt: parsedDueAt,
         bubble: {
           ...taskToEdit.bubble,
           radius,
@@ -90,6 +93,7 @@ export default function TaskModal({
         priority,
         category: finalCategory,
         relation,
+        dueAt: parsedDueAt,
         tags: [],
         isGroup: false,
         bubble: {
@@ -226,6 +230,22 @@ export default function TaskModal({
                 <option value="Admin/Personal">Admin/Personal</option>
               </select>
             </div>
+          </div>
+
+          {/* Due Date */}
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-1">
+              <span className="flex items-center gap-2">
+                <Calendar size={14} />
+                Fecha de Entrega (Opcional)
+              </span>
+            </label>
+            <input
+              type="datetime-local"
+              value={dueAt}
+              onChange={(e) => setDueAt(e.target.value)}
+              className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer scheme-dark"
+            />
           </div>
 
           {/* Submit */}
