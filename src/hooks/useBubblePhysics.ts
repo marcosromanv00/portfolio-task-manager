@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import Matter from "matter-js";
 import { Task } from "@/lib/types";
 
@@ -167,47 +167,53 @@ export const useBubblePhysics = (
   }, [containerRef, onDragEnd, onTaskClick]);
 
   // Sync tasks to bodies
-  const syncTasks = (tasks: Task[]) => {
-    if (!engineRef.current) return;
+  const syncTasks = useCallback(
+    (tasks: Task[]) => {
+      if (!engineRef.current) return;
 
-    const world = engineRef.current.world;
-    const currentIds = new Set(tasks.map((t) => t.id));
+      const world = engineRef.current.world;
+      const currentIds = new Set(tasks.map((t) => t.id));
 
-    // Remove deleted tasks
-    bodiesMap.current.forEach((body, id) => {
-      if (!currentIds.has(id)) {
-        Matter.Composite.remove(world, body);
-        bodiesMap.current.delete(id);
-      }
-    });
+      // Remove deleted tasks
+      bodiesMap.current.forEach((body, id) => {
+        if (!currentIds.has(id)) {
+          Matter.Composite.remove(world, body);
+          bodiesMap.current.delete(id);
+        }
+      });
 
-    // Add/Update tasks
-    tasks.forEach((task) => {
-      if (!bodiesMap.current.has(task.id)) {
-        // Create new body
-        const radius = task.bubble.radius || 40 + Math.random() * 20; // Fallback
-        const x =
-          task.bubble.x ||
-          Math.random() * (containerRef.current?.clientWidth || 500);
-        const y =
-          task.bubble.y ||
-          Math.random() * (containerRef.current?.clientHeight || 500);
+      // Add/Update tasks
+      tasks.forEach((task) => {
+        if (!bodiesMap.current.has(task.id)) {
+          // Create new body
+          const radius = task.bubble.radius || 40 + Math.random() * 20; // Fallback
+          const x =
+            task.bubble.x ||
+            Math.random() * (containerRef.current?.clientWidth || 500);
+          const y =
+            task.bubble.y ||
+            Math.random() * (containerRef.current?.clientHeight || 500);
 
-        const body = Matter.Bodies.circle(x, y, radius, {
-          frictionAir: 0.02,
-          restitution: 0.8,
-          label: `task-${task.id}`,
-          plugin: { data: task }, // Store task data in body
-        });
+          const body = Matter.Bodies.circle(x, y, radius, {
+            frictionAir: 0.02,
+            restitution: 0.8,
+            label: `task-${task.id}`,
+            plugin: { data: task }, // Store task data in body
+          });
 
-        Matter.Composite.add(world, body);
-        bodiesMap.current.set(task.id, body);
-      } else {
-        // Update existing body if needed (e.g. radius change)
-        // Complex syncing can happen here
-      }
-    });
-  };
+          Matter.Composite.add(world, body);
+          bodiesMap.current.set(task.id, body);
+        } else {
+          // Update existing body's plugin data for rendering
+          const existingBody = bodiesMap.current.get(task.id);
+          if (existingBody) {
+            existingBody.plugin.data = task;
+          }
+        }
+      });
+    },
+    [containerRef],
+  );
 
   return { engineRef, runnerRef, syncTasks, bodiesMap };
 };
