@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { useTaskStore } from "@/store/useTaskStore";
 import { TaskStatus, Task, TaskCategory } from "@/lib/types";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Database } from "lucide-react";
 import TaskModal from "@/components/TaskModal";
 
 import { getTaskColor } from "@/lib/utils";
@@ -20,6 +20,7 @@ export default function Home() {
   const deleteTask = useTaskStore((state) => state.deleteTask);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleTaskClick = (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId);
@@ -32,11 +33,13 @@ export default function Home() {
   const handleCreateNew = () => {
     setSelectedTask(null);
     setIsModalOpen(true);
+    setIsMenuOpen(false);
   };
 
   const clearSeedData = () => {
     const seedTasks = tasks.filter((t) => t.relation === "Seed Data");
     seedTasks.forEach((t) => deleteTask(t.id));
+    setIsMenuOpen(false);
   };
 
   // Seed Data function
@@ -72,6 +75,7 @@ export default function Home() {
         },
       });
     }
+    setIsMenuOpen(false);
   };
 
   const hasSeedData = tasks.some((t) => t.relation === "Seed Data");
@@ -82,29 +86,57 @@ export default function Home() {
       <div className="flex-1 relative w-full overflow-hidden">
         <BubbleCanvas onTaskClick={handleTaskClick} />
 
-        {/* Overlay UI */}
-        <div className="absolute bottom-24 md:bottom-8 right-8 md:right-32 flex gap-4 z-20">
-          {hasSeedData && (
-            <button
-              onClick={clearSeedData}
-              className="px-4 py-2 bg-rose-900/50 hover:bg-rose-800 text-rose-100 rounded-full border border-rose-500/50 transition-colors flex items-center gap-2"
-              title="Clear Seed Data"
-            >
-              <Trash2 size={16} />
-              <span>Clear Seed</span>
-            </button>
+        {/* Overlay backdrop for menu */}
+        {isMenuOpen && (
+          <div
+            className="fixed inset-0 z-20 bg-black/10 backdrop-blur-[1px]"
+            onClick={() => setIsMenuOpen(false)}
+          />
+        )}
+
+        {/* Overlay UI - Speed Dial Menu */}
+        <div className="absolute bottom-6 md:bottom-8 right-6 md:right-32 flex flex-col items-end gap-3 z-30">
+          {/* Menu Items */}
+          {isMenuOpen && (
+            <div className="flex flex-col items-end gap-3 mb-1 animate-in slide-in-from-bottom-2 fade-in duration-200">
+              {hasSeedData && (
+                <button
+                  onClick={clearSeedData}
+                  className="flex items-center gap-3 px-4 py-2 bg-rose-900/90 text-rose-100 rounded-full border border-rose-500/30 shadow-lg backdrop-blur-md hover:scale-105 transition-transform"
+                >
+                  <span className="text-sm font-medium">Clear Seed</span>
+                  <Trash2 size={18} />
+                </button>
+              )}
+
+              <button
+                onClick={seedData}
+                className="flex items-center gap-3 px-4 py-2 bg-indigo-900/90 text-indigo-100 rounded-full border border-indigo-500/30 shadow-lg backdrop-blur-md hover:scale-105 transition-transform"
+              >
+                <span className="text-sm font-medium">Add Seed Data</span>
+                <Database size={18} />
+              </button>
+
+              <button
+                onClick={handleCreateNew}
+                className="flex items-center gap-3 px-4 py-2 bg-cyan-900/90 text-cyan-100 rounded-full border border-cyan-500/30 shadow-lg backdrop-blur-md hover:scale-105 transition-transform"
+              >
+                <span className="text-sm font-medium">New Task</span>
+                <Plus size={18} />
+              </button>
+            </div>
           )}
+
+          {/* Main Floating Button */}
           <button
-            onClick={seedData}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-full border border-white/20 transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${
+              isMenuOpen
+                ? "bg-slate-700 text-white rotate-45"
+                : "bg-white text-slate-900 hover:scale-110"
+            }`}
           >
-            Seed Data ({tasks.filter((t) => t.relation === "Seed Data").length})
-          </button>
-          <button
-            onClick={handleCreateNew}
-            className="w-14 h-14 bg-white text-slate-900 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-          >
-            <Plus size={24} />
+            <Plus size={28} />
           </button>
         </div>
       </div>
