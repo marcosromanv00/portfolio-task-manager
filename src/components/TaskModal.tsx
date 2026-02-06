@@ -173,6 +173,7 @@ export default function TaskModal({
                   onChange={(e) => setPriority(e.target.value as Priority)}
                   className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
                 >
+                  <option value="-">-</option>
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
@@ -192,6 +193,7 @@ export default function TaskModal({
                   onChange={(e) => setStatus(e.target.value as TaskStatus)}
                   className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
                 >
+                  <option value="-">-</option>
                   <option value="todo">To Do</option>
                   <option value="in-progress">In Progress</option>
                   <option value="done">Done</option>

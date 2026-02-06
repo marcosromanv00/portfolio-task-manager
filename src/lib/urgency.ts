@@ -5,7 +5,8 @@ export function calculateUrgency(task: Task): number {
   if (
     task.status === "done" ||
     task.status === "discarded" ||
-    task.status === "archived"
+    task.status === "archived" ||
+    task.status === "-"
   )
     return 0;
 
@@ -21,6 +22,9 @@ export function calculateUrgency(task: Task): number {
       break;
     case "medium":
       score += 20;
+      break;
+    case "-":
+      score += 0;
       break;
     case "low":
     default:

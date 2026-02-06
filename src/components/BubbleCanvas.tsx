@@ -448,8 +448,18 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
         const displayRadius = radius * (1 + pulse);
 
         // 2. Urgency Color
-        const hue = 240 + urgencyFactor * 120;
-        const bubbleColor = `hsl(${hue % 360}, 65%, 45%)`;
+        let bubbleColor = "#475569"; // Default Gray (Slate-600) for Backlog
+
+        const activeStatuses: TaskStatus[] = [
+          "todo",
+          "in-progress",
+          "done",
+          "discarded",
+        ];
+        if (taskData?.status && activeStatuses.includes(taskData.status)) {
+          const hue = 240 + urgencyFactor * 120;
+          bubbleColor = `hsl(${hue % 360}, 65%, 45%)`;
+        }
 
         // 3. Category Distinction
         let strokeStyle = "rgba(255, 255, 255, 0.4)";

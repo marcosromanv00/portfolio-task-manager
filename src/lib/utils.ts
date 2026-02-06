@@ -14,6 +14,7 @@ export const PRIORITY_CONFIG: Record<
   medium: { radius: 79, label: "Medium" },
   high: { radius: 105, label: "High" },
   critical: { radius: 131, label: "Critical" },
+  "-": { radius: 50, label: "-" },
 };
 
 export function getBubbleRadius(priority: Priority) {
@@ -26,6 +27,8 @@ export const STATUS_COLORS = {
   done: "#10b981", // emerald-500
   discarded: "#ef4444", // red-500
   backlog: "#64748b", // slate-500
+  archived: "#fb7185", // rose-400
+  "-": "#94a3b8", // slate-400
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
