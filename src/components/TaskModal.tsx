@@ -5,15 +5,8 @@ import { X, Calendar } from "lucide-react";
 import { useTaskStore } from "@/store/useTaskStore";
 import { Priority, TaskStatus, Task, TaskCategory } from "@/lib/types";
 import { getBubbleRadius, getTaskColor } from "@/lib/utils";
-
-// Helper to format date for datetime-local input
-const formatDateForInput = (date: Date | undefined): string => {
-  if (!date) return "";
-  const d = new Date(date);
-  const offset = d.getTimezoneOffset();
-  const localDate = new Date(d.getTime() - offset * 60 * 1000);
-  return localDate.toISOString().slice(0, 16);
-};
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -43,8 +36,8 @@ export default function TaskModal({
   const [status, setStatus] = useState<TaskStatus>(
     taskToEdit?.status ?? "todo",
   );
-  const [dueAt, setDueAt] = useState<string>(
-    formatDateForInput(taskToEdit?.dueAt),
+  const [dueAt, setDueAt] = useState<Date | null>(
+    taskToEdit?.dueAt ? new Date(taskToEdit.dueAt) : null,
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -57,8 +50,8 @@ export default function TaskModal({
       category === "" ? undefined : (category as TaskCategory);
     const finalColor = getTaskColor(status, finalCategory);
 
-    // Parse dueAt if provided
-    const parsedDueAt = dueAt ? new Date(dueAt) : undefined;
+    // dueAt is already a Date or null
+    const finalDueAt = dueAt || undefined;
 
     if (taskToEdit) {
       // Update existing
@@ -69,7 +62,7 @@ export default function TaskModal({
         priority,
         category: finalCategory,
         relation,
-        dueAt: parsedDueAt,
+        dueAt: finalDueAt,
         bubble: {
           ...taskToEdit.bubble,
           radius,
@@ -93,7 +86,7 @@ export default function TaskModal({
         priority,
         category: finalCategory,
         relation,
-        dueAt: parsedDueAt,
+        dueAt: finalDueAt,
         tags: [],
         isGroup: false,
         bubble: {
@@ -235,18 +228,24 @@ export default function TaskModal({
 
           {/* Due Date */}
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">
+            <label className="block text-sm font-medium text-slate-400 mb-2">
               <span className="flex items-center gap-2">
-                <Calendar size={14} />
+                <Calendar size={14} className="text-blue-400" />
                 Fecha de Entrega (Opcional)
               </span>
             </label>
-            <input
-              type="datetime-local"
-              value={dueAt}
-              onChange={(e) => setDueAt(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer scheme-dark"
-            />
+            <div className="relative modern-datepicker">
+              <DatePicker
+                selected={dueAt}
+                onChange={(date: Date | null) => setDueAt(date)}
+                showTimeSelect
+                dateFormat="Pp"
+                placeholderText="Seleccionar fecha y hora..."
+                className="w-full px-4 py-2.5 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer"
+                isClearable
+                timeCaption="Hora"
+              />
+            </div>
           </div>
 
           {/* Submit */}
