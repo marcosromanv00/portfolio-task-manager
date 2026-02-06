@@ -67,9 +67,13 @@ export type Task = z.infer<typeof TaskSchema>;
 
 export interface TaskStore {
   tasks: Task[];
-  addTask: (task: Omit<Task, "id" | "createdAt" | "updatedAt">) => void;
-  updateTask: (id: string, updates: Partial<Task>) => void;
-  deleteTask: (id: string) => void;
-  moveTask: (id: string, position: { x: number; y: number }) => void;
-  updateTaskStatus: (id: string, status: TaskStatus) => void;
+  initialized: boolean;
+  fetchTasks: () => Promise<void>;
+  addTask: (
+    task: Omit<Task, "id" | "createdAt" | "updatedAt">,
+  ) => Promise<void>;
+  updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  moveTask: (id: string, position: { x: number; y: number }) => Promise<void>;
+  updateTaskStatus: (id: string, status: TaskStatus) => Promise<void>;
 }

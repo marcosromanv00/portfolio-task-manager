@@ -3,6 +3,7 @@
 import React from "react";
 import { Navigation } from "@/components/Navigation";
 import { useUIStore } from "@/store/useUIStore";
+import { useTaskStore } from "@/store/useTaskStore";
 import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
@@ -11,6 +12,13 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { isSidebarExpanded } = useUIStore();
+  const { fetchTasks, initialized } = useTaskStore();
+
+  React.useEffect(() => {
+    if (!initialized) {
+      fetchTasks();
+    }
+  }, [fetchTasks, initialized]);
 
   return (
     <>
