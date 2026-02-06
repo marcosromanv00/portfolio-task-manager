@@ -78,23 +78,7 @@ export default function Home() {
 
   return (
     <div className="flex h-full flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans">
-      {/* Header / Zones */}
-      <header className="h-24 w-full flex border-b border-white/10 z-10 glass-header">
-        <div className="flex-1 border-r border-white/10 flex items-center justify-center bg-blue-500/10 backdrop-blur-sm">
-          <h2 className="text-xl font-bold text-blue-200">Todo</h2>
-        </div>
-        <div className="flex-1 border-r border-white/10 flex items-center justify-center bg-amber-500/10 backdrop-blur-sm">
-          <h2 className="text-xl font-bold text-amber-200">In Progress</h2>
-        </div>
-        <div className="flex-1 border-r border-white/10 flex items-center justify-center bg-emerald-500/10 backdrop-blur-sm">
-          <h2 className="text-xl font-bold text-emerald-200">Done</h2>
-        </div>
-        <div className="flex-1 flex items-center justify-center bg-rose-500/10 backdrop-blur-sm">
-          <h2 className="text-xl font-bold text-rose-200">Archive</h2>
-        </div>
-      </header>
-
-      {/* Main Canvas Area */}
+      {/* Main Canvas Area - Full height now */}
       <div className="flex-1 relative w-full overflow-hidden">
         <BubbleCanvas onTaskClick={handleTaskClick} />
 

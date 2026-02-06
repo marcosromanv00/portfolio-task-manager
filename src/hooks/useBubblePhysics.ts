@@ -13,7 +13,12 @@ export interface PressurePoint {
 export const useBubblePhysics = (
   containerRef: React.RefObject<HTMLDivElement | null>,
   options?: {
-    onDragEnd?: (taskId: string, position: { x: number; y: number }) => void;
+    onDragStart?: (taskId: string) => void;
+    onDragEnd?: (
+      taskId: string,
+      position: { x: number; y: number },
+      mousePosition: { x: number; y: number },
+    ) => void;
     onTaskClick?: (taskId: string) => void;
   },
 ) => {
@@ -26,13 +31,15 @@ export const useBubblePhysics = (
   const wallsRef = useRef<Matter.Body[]>([]);
 
   // Use refs for callbacks to prevent engine recreation when they change
+  const onDragStartRef = useRef(options?.onDragStart);
   const onDragEndRef = useRef(options?.onDragEnd);
   const onTaskClickRef = useRef(options?.onTaskClick);
 
   useEffect(() => {
+    onDragStartRef.current = options?.onDragStart;
     onDragEndRef.current = options?.onDragEnd;
     onTaskClickRef.current = options?.onTaskClick;
-  }, [options?.onDragEnd, options?.onTaskClick]);
+  }, [options?.onDragStart, options?.onDragEnd, options?.onTaskClick]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -50,6 +57,8 @@ export const useBubblePhysics = (
 
     // Walls - Using much thicker walls to prevent fast objects from tunneling through
     const wallThickness = 500;
+    const sidebarWidth = 100; // Space reserved for sidebar
+
     const walls = [
       Matter.Bodies.rectangle(
         width / 2,
@@ -79,6 +88,18 @@ export const useBubblePhysics = (
         height + wallThickness * 2,
         { isStatic: true, label: "WallLeft" },
       ),
+      // Sidebar barrier wall - blocks entry to sidebar area when not dragging
+      Matter.Bodies.rectangle(
+        width - sidebarWidth - 10,
+        height / 2,
+        20,
+        height,
+        {
+          isStatic: true,
+          label: "WallSidebar",
+          collisionFilter: { category: 0x0002 },
+        },
+      ),
     ];
     Matter.Composite.add(engine.world, walls);
     wallsRef.current = walls;
@@ -89,9 +110,10 @@ export const useBubblePhysics = (
       const newWidth = containerRef.current.clientWidth;
       const newHeight = containerRef.current.clientHeight;
       const wallThickness = 500;
+      const sidebarWidth = 100;
 
       const currentWalls = wallsRef.current;
-      if (currentWalls.length === 4) {
+      if (currentWalls.length >= 4) {
         // Top
         Matter.Body.setPosition(currentWalls[0], {
           x: newWidth / 2,
@@ -112,6 +134,13 @@ export const useBubblePhysics = (
           x: -wallThickness / 2,
           y: newHeight / 2,
         });
+        // Sidebar barrier
+        if (currentWalls.length >= 5) {
+          Matter.Body.setPosition(currentWalls[4], {
+            x: newWidth - sidebarWidth - 10,
+            y: newHeight / 2,
+          });
+        }
       }
     };
 
@@ -132,10 +161,10 @@ export const useBubblePhysics = (
     });
     Matter.Composite.add(engine.world, mouseConstraint);
 
-    // Drag events
+    // Drag events - startdrag
     Matter.Events.on(
       mouseConstraint,
-      "enddrag",
+      "startdrag",
       (e: Matter.IEvent<Matter.MouseConstraint>) => {
         const event = e as Matter.IEvent<Matter.MouseConstraint> & {
           body: Matter.Body;
@@ -143,8 +172,37 @@ export const useBubblePhysics = (
         const body = event.body;
         if (body && body.label && body.label.startsWith("task-")) {
           const taskId = body.label.replace("task-", "");
+          if (onDragStartRef.current) {
+            onDragStartRef.current(taskId);
+          }
+        }
+      },
+    );
+
+    // Drag events - enddrag
+    Matter.Events.on(
+      mouseConstraint,
+      "enddrag",
+      (e: Matter.IEvent<Matter.MouseConstraint>) => {
+        const event = e as Matter.IEvent<Matter.MouseConstraint> & {
+          body: Matter.Body;
+          mouse: Matter.Mouse;
+        };
+        const body = event.body;
+        if (body && body.label && body.label.startsWith("task-")) {
+          const taskId = body.label.replace("task-", "");
           if (onDragEndRef.current) {
-            onDragEndRef.current(taskId, body.position);
+            // Get the mouse position relative to the page
+            const containerRect = containerRef.current?.getBoundingClientRect();
+            const mouseAbsX =
+              (containerRect?.left || 0) + event.mouse.position.x;
+            const mouseAbsY =
+              (containerRect?.top || 0) + event.mouse.position.y;
+
+            onDragEndRef.current(taskId, body.position, {
+              x: mouseAbsX,
+              y: mouseAbsY,
+            });
           }
         }
       },
@@ -439,5 +497,61 @@ export const useBubblePhysics = (
     [containerRef],
   );
 
-  return { engineRef, runnerRef, syncTasks, bodiesMap };
+  // Toggle sidebar barrier - disable during drag to allow dropping on sidebar
+  const setSidebarBarrierEnabled = useCallback(
+    (enabled: boolean) => {
+      const walls = wallsRef.current;
+      if (walls.length >= 5) {
+        const sidebarWall = walls[4];
+        // Move wall far away when disabled, back in place when enabled
+        if (enabled) {
+          const container = containerRef.current;
+          if (container) {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            Matter.Body.setPosition(sidebarWall, {
+              x: width - 100 - 10,
+              y: height / 2,
+            });
+          }
+        } else {
+          // Move wall far off-screen
+          Matter.Body.setPosition(sidebarWall, { x: -10000, y: -10000 });
+        }
+      }
+    },
+    [containerRef],
+  );
+
+  // Move a bubble to the center with a velocity kick
+  const moveBubbleToCenter = useCallback(
+    (taskId: string) => {
+      const body = bodiesMap.current.get(taskId);
+      const container = containerRef.current;
+
+      if (body && container) {
+        const centerX = (container.clientWidth - 100) / 2; // Account for sidebar
+        const centerY = container.clientHeight / 2;
+
+        // Teleport to center
+        Matter.Body.setPosition(body, { x: centerX, y: centerY });
+
+        // Give it a small random velocity for a "pop" effect
+        Matter.Body.setVelocity(body, {
+          x: (Math.random() - 0.5) * 8,
+          y: (Math.random() - 0.5) * 8,
+        });
+      }
+    },
+    [containerRef],
+  );
+
+  return {
+    engineRef,
+    runnerRef,
+    syncTasks,
+    bodiesMap,
+    setSidebarBarrierEnabled,
+    moveBubbleToCenter,
+  };
 };
