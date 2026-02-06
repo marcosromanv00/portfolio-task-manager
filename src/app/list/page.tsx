@@ -1,33 +1,92 @@
 "use client";
 
 import { useTaskStore } from "@/store/useTaskStore";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Search,
   Filter,
   Calendar as CalIcon,
   Trash2,
   CheckCircle,
-  Circle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Task } from "@/lib/types";
+
+type SortField = "title" | "status" | "priority" | "dueAt";
+type SortOrder = "asc" | "desc";
 
 export default function ListPage() {
   const { tasks, updateTask, deleteTask } = useTaskStore();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [sortField, setSortField] = useState<SortField>("dueAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
-  const filteredTasks = tasks.filter((task) => {
-    const matchesSearch = task.title
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    const matchesFilter = filter === "all" ? true : task.status === filter;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredAndSortedTasks = useMemo(() => {
+    let result = tasks.filter((task) => {
+      const matchesSearch = task.title
+        .toLowerCase()
+        .includes(search.toLowerCase());
+      const matchesFilter = filter === "all" ? true : task.status === filter;
+      return matchesSearch && matchesFilter;
+    });
+
+    result.sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case "title":
+          comparison = a.title.localeCompare(b.title);
+          break;
+        case "status":
+          comparison = a.status.localeCompare(b.status);
+          break;
+        case "priority": {
+          const priorityOrder = { low: 0, medium: 1, high: 2, critical: 3 };
+          comparison =
+            (priorityOrder[a.priority] || 0) - (priorityOrder[b.priority] || 0);
+          break;
+        }
+        case "dueAt":
+          if (!a.dueAt && !b.dueAt) comparison = 0;
+          else if (!a.dueAt)
+            comparison = 1; // No date goes last
+          else if (!b.dueAt) comparison = -1;
+          else
+            comparison =
+              new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
+          break;
+      }
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+
+    return result;
+  }, [tasks, search, filter, sortField, sortOrder]);
 
   const toggleStatus = (id: string, currentStatus: string) => {
     updateTask(id, { status: currentStatus === "done" ? "todo" : "done" });
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field)
+      return <ArrowUpDown className="w-3 h-3 ml-1 opacity-50" />;
+    return sortOrder === "asc" ? (
+      <ArrowUp className="w-3 h-3 ml-1 text-cyan-400" />
+    ) : (
+      <ArrowDown className="w-3 h-3 ml-1 text-cyan-400" />
+    );
   };
 
   return (
@@ -54,7 +113,7 @@ export default function ListPage() {
 
       {/* Filters */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
-        {["all", "todo", "in-progress", "done", "high-priority"].map((f) => (
+        {["all", "todo", "in-progress", "done", "high", "critical"].map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -71,21 +130,36 @@ export default function ListPage() {
       </div>
 
       <div className="glass rounded-3xl overflow-hidden min-h-[500px]">
-        {filteredTasks.length === 0 ? (
+        {filteredAndSortedTasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500">
             <Filter className="w-12 h-12 mb-4 opacity-20" />
             <p>No tasks found matching your criteria</p>
           </div>
         ) : (
           <div className="w-full">
-            <div className="grid grid-cols-[auto_1fr_auto_auto] gap-4 p-4 border-b border-white/10 text-sm font-medium text-gray-500 uppercase tracking-wider">
+            <div className="grid grid-cols-[auto_1fr_auto_auto] gap-4 p-4 border-b border-white/10 text-sm font-medium text-gray-500 uppercase tracking-wider bg-white/5">
               <div className="w-8"></div>
-              <div>Task</div>
-              <div className="hidden md:block">Due Date</div>
-              <div>Actions</div>
+              <button
+                onClick={() => handleSort("title")}
+                className="flex items-center hover:text-white transition-colors text-left"
+              >
+                Task <SortIcon field="title" />
+              </button>
+              <button
+                onClick={() => handleSort("dueAt")}
+                className="hidden md:flex items-center hover:text-white transition-colors"
+              >
+                Due Date <SortIcon field="dueAt" />
+              </button>
+              <button
+                onClick={() => handleSort("priority")}
+                className="flex items-center hover:text-white transition-colors justify-end pr-8"
+              >
+                Props <SortIcon field="priority" />
+              </button>
             </div>
             <div>
-              {filteredTasks.map((task) => (
+              {filteredAndSortedTasks.map((task) => (
                 <div
                   key={task.id}
                   className="grid grid-cols-[auto_1fr_auto_auto] gap-4 p-4 hover:bg-white/5 transition-colors border-b border-white/5 items-center group"
@@ -141,7 +215,7 @@ export default function ListPage() {
                     </div>
                   </div>
 
-                  <div className="hidden md:flex flex-col items-end text-sm text-gray-400">
+                  <div className="hidden md:flex flex-col items-start text-sm text-gray-400">
                     {task.dueAt ? (
                       <div className="flex items-center gap-1.5">
                         <CalIcon className="w-4 h-4" />
@@ -154,10 +228,22 @@ export default function ListPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={cn(
+                        "text-[10px] px-2 py-0.5 rounded-full uppercase hidden md:inline-block",
+                        task.priority === "critical"
+                          ? "bg-red-500/20 text-red-400"
+                          : task.priority === "high"
+                            ? "bg-orange-500/20 text-orange-400"
+                            : "bg-blue-500/20 text-blue-400",
+                      )}
+                    >
+                      {task.priority}
+                    </span>
                     <button
                       onClick={() => deleteTask(task.id)}
-                      className="p-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg transition-colors"
+                      className="p-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
