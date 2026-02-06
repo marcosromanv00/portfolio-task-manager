@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { useTaskStore } from "@/store/useTaskStore";
-import { TaskStatus } from "@/lib/types";
+import { TaskStatus, Task } from "@/lib/types";
 import { Plus } from "lucide-react";
+import TaskModal from "@/components/TaskModal";
 
 // Dynamic import for BubbleCanvas to avoid SSR issues with Matter.js
 const BubbleCanvas = dynamic(() => import("@/components/BubbleCanvas"), {
@@ -14,6 +15,21 @@ const BubbleCanvas = dynamic(() => import("@/components/BubbleCanvas"), {
 export default function Home() {
   const addTask = useTaskStore((state) => state.addTask);
   const tasks = useTaskStore((state) => state.tasks);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const handleTaskClick = (taskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      setSelectedTask(task);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCreateNew = () => {
+    setSelectedTask(null);
+    setIsModalOpen(true);
+  };
 
   // Seed Data function
   const seedData = () => {
@@ -60,21 +76,30 @@ export default function Home() {
 
       {/* Main Canvas Area */}
       <div className="flex-1 relative w-full h-full">
-        <BubbleCanvas />
+        <BubbleCanvas onTaskClick={handleTaskClick} />
 
         {/* Overlay UI */}
-        <div className="absolute bottom-8 right-8 flex gap-4">
+        <div className="absolute bottom-8 right-8 flex gap-4 z-20">
           <button
             onClick={seedData}
             className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-full border border-white/20 transition-colors"
           >
             Seed Data ({tasks.length})
           </button>
-          <button className="w-14 h-14 bg-white text-slate-900 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+          <button
+            onClick={handleCreateNew}
+            className="w-14 h-14 bg-white text-slate-900 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+          >
             <Plus size={24} />
           </button>
         </div>
       </div>
+
+      <TaskModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        taskToEdit={selectedTask}
+      />
     </main>
   );
 }

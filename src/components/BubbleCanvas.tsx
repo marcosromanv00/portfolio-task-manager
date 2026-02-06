@@ -5,7 +5,11 @@ import { useTaskStore } from "@/store/useTaskStore";
 import { useBubblePhysics } from "@/hooks/useBubblePhysics";
 import Matter from "matter-js";
 
-export default function BubbleCanvas() {
+interface BubbleCanvasProps {
+  onTaskClick?: (taskId: string) => void;
+}
+
+export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tasks = useTaskStore((state) => state.tasks);
@@ -37,6 +41,7 @@ export default function BubbleCanvas() {
 
   const { engineRef, syncTasks } = useBubblePhysics(containerRef, {
     onDragEnd: handleDragEnd,
+    onTaskClick,
   });
 
   // Sync tasks when they change

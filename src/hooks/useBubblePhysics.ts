@@ -6,6 +6,7 @@ export const useBubblePhysics = (
   containerRef: React.RefObject<HTMLDivElement | null>,
   options?: {
     onDragEnd?: (taskId: string, position: { x: number; y: number }) => void;
+    onTaskClick?: (taskId: string) => void;
   },
 ) => {
   const engineRef = useRef<Matter.Engine | null>(null);
@@ -15,7 +16,7 @@ export const useBubblePhysics = (
   // Keep track of task IDs to body IDs for syncing
   const bodiesMap = useRef<Map<string, Matter.Body>>(new Map());
 
-  const { onDragEnd } = options || {};
+  const { onDragEnd, onTaskClick } = options || {};
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -91,6 +92,40 @@ export const useBubblePhysics = (
       });
     }
 
+    // Click Detection
+    if (onTaskClick) {
+      let startPoint = { x: 0, y: 0 };
+
+      Matter.Events.on(mouseConstraint, "mousedown", (event: any) => {
+        startPoint = { ...event.mouse.position };
+      });
+
+      Matter.Events.on(mouseConstraint, "mouseup", (event: any) => {
+        const endPoint = event.mouse.position;
+        const dist = Math.hypot(
+          endPoint.x - startPoint.x,
+          endPoint.y - startPoint.y,
+        );
+
+        if (dist < 5) {
+          // Threshold for click
+          // We need to find if a body was clicked.
+          // MouseConstraint doesn't always have body on mouseup if we didn't drag it?
+          // Actually Query.point is safer.
+          const bodies = Matter.Composite.allBodies(engine.world);
+          const clickedBodies = Matter.Query.point(bodies, endPoint);
+
+          for (const body of clickedBodies) {
+            if (body.label && body.label.startsWith("task-")) {
+              const taskId = body.label.replace("task-", "");
+              onTaskClick(taskId);
+              break; // Handle only top one
+            }
+          }
+        }
+      });
+    }
+
     // 4. Runner
     const runner = Matter.Runner.create();
     Matter.Runner.run(runner, engine);
@@ -106,7 +141,7 @@ export const useBubblePhysics = (
       Matter.Engine.clear(engine);
       engineRef.current = null;
     };
-  }, [containerRef, onDragEnd]);
+  }, [containerRef, onDragEnd, onTaskClick]);
 
   // Sync tasks to bodies
   const syncTasks = (tasks: Task[]) => {
