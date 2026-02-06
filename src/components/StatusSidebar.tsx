@@ -25,7 +25,7 @@ interface StatusItem {
 const statusItems: StatusItem[] = [
   {
     status: "todo",
-    label: "To Do",
+    label: "Por Hacer",
     icon: Circle,
     color: "text-blue-400",
     bgHover: "hover:bg-blue-500/20",
@@ -33,7 +33,7 @@ const statusItems: StatusItem[] = [
   },
   {
     status: "in-progress",
-    label: "In Progress",
+    label: "En Progreso",
     icon: PlayCircle,
     color: "text-amber-400",
     bgHover: "hover:bg-amber-500/20",
@@ -41,7 +41,7 @@ const statusItems: StatusItem[] = [
   },
   {
     status: "done",
-    label: "Done",
+    label: "Hecho",
     icon: CheckCircle2,
     color: "text-emerald-400",
     bgHover: "hover:bg-emerald-500/20",
@@ -49,7 +49,7 @@ const statusItems: StatusItem[] = [
   },
   {
     status: "backlog",
-    label: "Backlog",
+    label: "Pendientes",
     icon: Clock,
     color: "text-slate-400",
     bgHover: "hover:bg-slate-500/20",
@@ -57,7 +57,7 @@ const statusItems: StatusItem[] = [
   },
   {
     status: "discarded",
-    label: "Discarded",
+    label: "Descartado",
     icon: XCircle,
     color: "text-red-400",
     bgHover: "hover:bg-red-500/20",
@@ -65,7 +65,7 @@ const statusItems: StatusItem[] = [
   },
   {
     status: "archived",
-    label: "Archived",
+    label: "Archivado",
     icon: Archive,
     color: "text-rose-400",
     bgHover: "hover:bg-rose-500/20",
@@ -186,7 +186,7 @@ export function StatusSidebar() {
       <button
         onClick={() => window.location.reload()}
         className="md:hidden flex items-center justify-center w-12 h-12 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-all ml-2 border-l border-white/10 pl-2"
-        title="Refresh App"
+        title="Actualizar App"
       >
         <RefreshCw className="w-5 h-5" />
       </button>
@@ -195,7 +195,7 @@ export function StatusSidebar() {
       {isDragging && (
         <div className="hidden md:block mt-4 px-2">
           <div className="text-xs text-white/40 text-center font-medium">
-            Drop here
+            Suelta aquí
           </div>
         </div>
       )}

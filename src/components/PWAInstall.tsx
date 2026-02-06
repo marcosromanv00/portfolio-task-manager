@@ -63,7 +63,7 @@ export function PWAInstall() {
       className="fixed bottom-24 right-4 md:right-8 z-50 flex items-center gap-2 px-4 py-2 bg-linear-to-r from-cyan-500 to-purple-500 text-white rounded-full shadow-lg hover:scale-105 transition-transform font-medium"
     >
       <Download size={18} />
-      <span>Install App</span>
+      <span>Instalar App</span>
     </button>
   );
 }

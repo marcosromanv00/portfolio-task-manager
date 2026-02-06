@@ -86,9 +86,15 @@ export default function ListPage() {
           comparison = a.status.localeCompare(b.status);
           break;
         case "priority": {
-          const priorityOrder = { low: 0, medium: 1, high: 2, critical: 3 };
+          const priorityOrder: Record<string, number> = {
+            "-": 0,
+            low: 1,
+            medium: 2,
+            high: 3,
+            critical: 4,
+          };
           comparison =
-            (priorityOrder[a.priority] || 0) - (priorityOrder[b.priority] || 0);
+            (priorityOrder[a.priority] ?? 0) - (priorityOrder[b.priority] ?? 0);
           break;
         }
         case "dueAt":

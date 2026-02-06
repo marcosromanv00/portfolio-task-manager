@@ -216,6 +216,7 @@ export const useTaskStore = create<TaskStore>()(
           discarded: "#ef4444",
           backlog: "#64748b",
           archived: "#f43f5e",
+          "-": "#94a3b8",
         };
 
         const updatedAt = new Date();
