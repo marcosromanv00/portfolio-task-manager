@@ -81,7 +81,8 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
   const [popAnimations, setPopAnimations] = useState<PopAnimation[]>([]);
 
   // UI Store for drag state
-  const { isDragging, setDragging, setMousePosition } = useUIStore();
+  const { isDragging, draggedTaskId, setDragging, setMousePosition } =
+    useUIStore();
 
   // Track mouse position during drag (within canvas coordinates)
   const mousePosRef = useRef<{ x: number; y: number } | null>(null);
@@ -90,7 +91,7 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
   const setSidebarBarrierEnabledRef = useRef<(enabled: boolean) => void>(
     () => {},
   );
-  const moveBubbleToCenterRef = useRef<(taskId: string) => void>(() => {});
+  const moveBubbleToStatusAreaRef = useRef<(taskId: string) => void>(() => {});
 
   // Calculate which status zone the position is in
   const getStatusAtPosition = useCallback(
@@ -162,21 +163,21 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
           // Found a status to change to!
           updateTaskStatus(taskId, status);
 
-          // Move bubble to center with pop effect
-          moveBubbleToCenterRef.current(taskId);
+          // Move bubble to sidebar area with pop effect
+          moveBubbleToStatusAreaRef.current(taskId);
 
           // Get status item for color
           const statusItem = STATUS_ITEMS.find((s) => s.status === status);
 
-          // Add pop animation
-          const centerX = (canvas.width - SIDEBAR_WIDTH - SIDEBAR_PADDING) / 2;
-          const centerY = canvas.height / 2;
+          // Add pop animation at the right side
+          const popX = canvas.width - SIDEBAR_WIDTH - SIDEBAR_PADDING - 100;
+          const popY = canvas.height / 2;
 
           setPopAnimations((prev) => [
             ...prev,
             {
-              x: centerX,
-              y: centerY,
+              x: popX,
+              y: popY,
               color: statusItem?.color || "#fff",
               label: statusItem?.label || status,
               startTime: Date.now(),
@@ -200,19 +201,19 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
 
       if (statusFromBody) {
         updateTaskStatus(taskId, statusFromBody);
-        moveBubbleToCenterRef.current(taskId);
+        moveBubbleToStatusAreaRef.current(taskId);
 
         const statusItem = STATUS_ITEMS.find(
           (s) => s.status === statusFromBody,
         );
-        const centerX = (canvas.width - SIDEBAR_WIDTH - SIDEBAR_PADDING) / 2;
-        const centerY = canvas.height / 2;
+        const popX = canvas.width - SIDEBAR_WIDTH - SIDEBAR_PADDING - 100;
+        const popY = canvas.height / 2;
 
         setPopAnimations((prev) => [
           ...prev,
           {
-            x: centerX,
-            y: centerY,
+            x: popX,
+            y: popY,
             color: statusItem?.color || "#fff",
             label: statusItem?.label || statusFromBody,
             startTime: Date.now(),
@@ -239,18 +240,21 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
     ],
   );
 
-  const { engineRef, syncTasks, setSidebarBarrierEnabled, moveBubbleToCenter } =
-    useBubblePhysics(containerRef, {
-      onDragStart: handleDragStart,
-      onDragEnd: handleDragEnd,
-      onTaskClick,
-    });
+  const {
+    engineRef,
+    syncTasks,
+    setSidebarBarrierEnabled,
+    moveBubbleToStatusArea,
+  } = useBubblePhysics(containerRef, {
+    onDragStart: handleDragStart,
+    onDragEnd: handleDragEnd,
+    onTaskClick,
+  });
 
-  // Keep refs updated with the latest functions
   useEffect(() => {
     setSidebarBarrierEnabledRef.current = setSidebarBarrierEnabled;
-    moveBubbleToCenterRef.current = moveBubbleToCenter;
-  }, [setSidebarBarrierEnabled, moveBubbleToCenter]);
+    moveBubbleToStatusAreaRef.current = moveBubbleToStatusArea;
+  }, [setSidebarBarrierEnabled, moveBubbleToStatusArea]);
 
   // Track mouse position during drag
   useEffect(() => {
@@ -574,8 +578,29 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
         }
 
         const { x, y } = body.position;
-        const radius =
+        let radius =
           (body as Matter.Body & { circleRadius?: number }).circleRadius || 60;
+
+        // Dynamic scaling when dragging toward sidebar
+        if (isDragging && body.label === `task-${draggedTaskId}`) {
+          const sidebarX = canvasWidth - SIDEBAR_WIDTH - SIDEBAR_PADDING;
+          // Scale based on distance to sidebar.
+          // Start scaling from 300px away from the sidebar edge.
+          const scaleZone = 300;
+          const distToSidebar = sidebarX - x;
+
+          if (distToSidebar < scaleZone) {
+            // progress: 0 (at scaleZone distance) to 1 (at sidebar edge)
+            const progress = Math.max(
+              0,
+              Math.min(1, 1 - distToSidebar / scaleZone),
+            );
+            // scale from 1.0 down to 0.35 (significantly smaller)
+            const scale = 1 - progress * 0.65;
+            radius *= scale;
+          }
+        }
+
         const taskData = body.plugin.data;
         const urgency = taskData ? calculateUrgency(taskData) : 0;
         const urgencyFactor = Math.min(urgency / 150, 1);
@@ -659,9 +684,11 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
         ctx.stroke();
 
         // Draw Text
-        if (taskData?.title) {
+        if (taskData?.title && radius > 20) {
+          const textAlpha = Math.min(1, (radius - 20) / 30);
+          ctx.globalAlpha = textAlpha;
           ctx.fillStyle = "#fff";
-          const fontSize = Math.max(12, Math.floor(radius / 4));
+          const fontSize = Math.max(10, Math.floor(radius / 4));
           ctx.font = `bold ${fontSize}px Inter, sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
@@ -696,6 +723,7 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
           finalLines.forEach((line, index) => {
             ctx.fillText(line, x, startY + index * lineHeight);
           });
+          ctx.globalAlpha = 1;
         }
       });
 
@@ -707,7 +735,14 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [engineRef, tasks, isDragging, getStatusAtPosition, popAnimations]);
+  }, [
+    engineRef,
+    tasks,
+    isDragging,
+    draggedTaskId,
+    getStatusAtPosition,
+    popAnimations,
+  ]);
 
   return (
     <div

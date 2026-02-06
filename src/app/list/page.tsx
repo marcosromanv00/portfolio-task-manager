@@ -11,9 +11,12 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Pencil,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import TaskModal from "@/components/TaskModal";
+import { Task } from "@/lib/types";
 
 type SortField = "title" | "status" | "priority" | "dueAt";
 type SortOrder = "asc" | "desc";
@@ -42,13 +45,33 @@ export default function ListPage() {
   const [filter, setFilter] = useState("all");
   const [sortField, setSortField] = useState<SortField>("dueAt");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const filteredAndSortedTasks = useMemo(() => {
     const result = tasks.filter((task) => {
-      const matchesSearch = task.title
-        .toLowerCase()
-        .includes(search.toLowerCase());
-      const matchesFilter = filter === "all" ? true : task.status === filter;
+      const matchesSearch =
+        task.title.toLowerCase().includes(search.toLowerCase()) ||
+        task.description?.toLowerCase().includes(search.toLowerCase());
+
+      let matchesFilter = true;
+      if (filter !== "all") {
+        const statusList = [
+          "todo",
+          "in-progress",
+          "done",
+          "discarded",
+          "backlog",
+          "archived",
+        ];
+        const priorityList = ["low", "medium", "high", "critical"];
+
+        if (statusList.includes(filter)) {
+          matchesFilter = task.status === filter;
+        } else if (priorityList.includes(filter)) {
+          matchesFilter = task.priority === filter;
+        }
+      }
+
       return matchesSearch && matchesFilter;
     });
 
@@ -120,7 +143,16 @@ export default function ListPage() {
 
       {/* Filters */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
-        {["all", "todo", "in-progress", "done", "high", "critical"].map((f) => (
+        {[
+          "all",
+          "todo",
+          "in-progress",
+          "done",
+          "high",
+          "critical",
+          "backlog",
+          "archived",
+        ].map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -263,12 +295,20 @@ export default function ListPage() {
                     >
                       {task.priority}
                     </span>
-                    <button
-                      onClick={() => deleteTask(task.id)}
-                      className="p-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => setEditingTask(task)}
+                        className="p-2 hover:bg-white/10 text-gray-400 hover:text-cyan-400 rounded-lg transition-colors"
+                      >
+                        <Pencil className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => deleteTask(task.id)}
+                        className="p-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -276,6 +316,13 @@ export default function ListPage() {
           </div>
         )}
       </div>
+
+      <TaskModal
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        taskToEdit={editingTask}
+        key={editingTask?.id ?? "closed"}
+      />
     </div>
   );
 }

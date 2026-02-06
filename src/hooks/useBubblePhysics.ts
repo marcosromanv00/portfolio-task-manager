@@ -523,23 +523,28 @@ export const useBubblePhysics = (
     [containerRef],
   );
 
-  // Move a bubble to the center with a velocity kick
-  const moveBubbleToCenter = useCallback(
+  // Move a bubble to the right side (near sidebar) after status change
+  const moveBubbleToStatusArea = useCallback(
     (taskId: string) => {
       const body = bodiesMap.current.get(taskId);
       const container = containerRef.current;
 
       if (body && container) {
-        const centerX = (container.clientWidth - 100) / 2; // Account for sidebar
-        const centerY = container.clientHeight / 2;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        const sidebarWidth = 100;
 
-        // Teleport to center
-        Matter.Body.setPosition(body, { x: centerX, y: centerY });
+        // Position it just to the left of the sidebar area
+        const resetX = width - sidebarWidth - 100;
+        const resetY = height / 2;
 
-        // Give it a small random velocity for a "pop" effect
+        // Teleport to the right side area
+        Matter.Body.setPosition(body, { x: resetX, y: resetY });
+
+        // Give it a small velocity kick TOWARDS the center to keep it in view
         Matter.Body.setVelocity(body, {
-          x: (Math.random() - 0.5) * 8,
-          y: (Math.random() - 0.5) * 8,
+          x: -5 - Math.random() * 5,
+          y: (Math.random() - 0.5) * 5,
         });
       }
     },
@@ -552,6 +557,6 @@ export const useBubblePhysics = (
     syncTasks,
     bodiesMap,
     setSidebarBarrierEnabled,
-    moveBubbleToCenter,
+    moveBubbleToStatusArea,
   };
 };
