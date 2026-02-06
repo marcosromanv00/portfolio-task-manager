@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useCallback } from "react";
 import { useTaskStore } from "@/store/useTaskStore";
-import { useBubblePhysics } from "@/hooks/useBubblePhysics";
+import { useBubblePhysics, PressurePoint } from "@/hooks/useBubblePhysics";
 import Matter from "matter-js";
 import { calculateUrgency } from "@/lib/urgency";
 
@@ -99,8 +99,8 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
         }
 
         const { x, y } = body.position;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const radius = (body as any).circleRadius || 60;
+        const radius =
+          (body as Matter.Body & { circleRadius?: number }).circleRadius || 60;
         const taskData = body.plugin.data;
         const urgency = taskData ? calculateUrgency(taskData) : 0;
         const urgencyFactor = Math.min(urgency / 150, 1);
@@ -147,35 +147,59 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
           }
         }
 
-        // 4. Squishy Deformation (Rubber Effect)
-        const deformation = body.plugin.deformation || 0;
-        const deformationAngle = body.plugin.deformationAngle || 0;
+        // 4. Squishy Organic Deformation (Dough/Plastilina Effect)
+        const pressures = body.plugin.pressures || [];
 
-        // Volume preservation: squash in one direction, stretch in the other
-        const radiusX = displayRadius * (1 + deformation);
-        const radiusY = displayRadius * (1 - deformation);
+        // We render using a path with multiple points to allow organic deformation
+        const segments = 32; // More segments for smoother curves
+        const points: { x: number; y: number }[] = [];
 
-        // Draw Bubble
+        for (let i = 0; i < segments; i++) {
+          const pointAngle = (i / segments) * Math.PI * 2;
+
+          let offset = 0;
+
+          pressures.forEach((p: PressurePoint) => {
+            // Angle distance with wrapping
+            let diff = Math.abs(pointAngle - p.angle);
+            if (diff > Math.PI) diff = Math.PI * 2 - diff;
+
+            // Very localized compression at the pressure point (tight Gaussian)
+            // Smaller sigma = more localized dent
+            const strength = Math.exp(-Math.pow(diff / 0.35, 2));
+            // Much smaller multiplier for subtle dent
+            offset -= p.intensity * radius * 0.25 * strength;
+          });
+
+          // Clamp offset to prevent extreme deformation
+          offset = Math.max(offset, -radius * 0.15);
+
+          const r = displayRadius + offset;
+          points.push({
+            x: x + Math.cos(pointAngle) * r,
+            y: y + Math.sin(pointAngle) * r,
+          });
+        }
+
+        // Draw Organic Bubble Shape
         ctx.beginPath();
-        // Use ellipse for deformation
-        ctx.ellipse(x, y, radiusX, radiusY, deformationAngle, 0, 2 * Math.PI);
+
+        // Move to the first point
+        ctx.moveTo(points[0].x, points[0].y);
+
+        // Smooth the path using quadratic curves through midpoints
+        for (let i = 0; i < points.length; i++) {
+          const nextIdx = (i + 1) % points.length;
+          const xc = (points[i].x + points[nextIdx].x) / 2;
+          const yc = (points[i].y + points[nextIdx].y) / 2;
+          ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+        }
+
+        ctx.closePath();
         ctx.fillStyle = bubbleColor;
         ctx.fill();
 
-        // Draw Inset Border (4px inside)
-        ctx.beginPath();
-        const borderDist = 4;
-        const borderRadiusX = Math.max(0, radiusX - borderDist);
-        const borderRadiusY = Math.max(0, radiusY - borderDist);
-        ctx.ellipse(
-          x,
-          y,
-          borderRadiusX,
-          borderRadiusY,
-          deformationAngle,
-          0,
-          2 * Math.PI,
-        );
+        // Draw Soft Inset Border
         ctx.lineWidth = lineWidth;
         ctx.strokeStyle = strokeStyle;
         ctx.stroke();

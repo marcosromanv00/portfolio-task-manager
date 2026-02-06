@@ -3,6 +3,13 @@ import Matter from "matter-js";
 import { Task } from "@/lib/types";
 import { calculateUrgency } from "@/lib/urgency";
 
+export interface PressurePoint {
+  angle: number;
+  intensity: number;
+  targetIntensity: number;
+  active: boolean;
+}
+
 export const useBubblePhysics = (
   containerRef: React.RefObject<HTMLDivElement | null>,
   options?: {
@@ -204,57 +211,75 @@ export const useBubblePhysics = (
     );
 
     // 4. Collision Detection for Deformation
-    Matter.Events.on(engine, "collisionStart", (event) => {
-      event.pairs.forEach((pair) => {
-        const { bodyA, bodyB } = pair;
+    Matter.Events.on(engine, "afterUpdate", () => {
+      const pairs: Matter.Pair[] = (
+        engine as unknown as { pairs: { list: Matter.Pair[] } }
+      ).pairs.list;
+      const bodies = Matter.Composite.allBodies(engine.world);
 
-        // Skip walls for now, or include them if you want bubbles to squash against walls
-        if (bodyA.isStatic || bodyB.isStatic) {
-          // Squash against wall
-          const body = bodyA.isStatic ? bodyB : bodyA;
-          const wall = bodyA.isStatic ? bodyA : bodyB;
+      // Initialize/Reset temporary pressure for this frame
+      bodies.forEach((body) => {
+        if (!body.plugin.pressures) {
+          body.plugin.pressures = [];
+        }
+        // We don't clear them completely, we'll let them decay in beforeUpdate
+      });
 
-          // Impact magnitude based on velocity normal to collision
-          const impactVelocity = Math.sqrt(
-            Math.pow(body.velocity.x, 2) + Math.pow(body.velocity.y, 2),
-          );
+      pairs.forEach((pair: Matter.Pair) => {
+        if (!pair.isActive) return;
 
-          if (impactVelocity > 0.5) {
-            const angle = Math.atan2(
-              body.position.y - wall.position.y,
-              body.position.x - wall.position.x,
-            );
-            const deformation = Math.min(impactVelocity * 0.05, 0.3);
+        const { bodyA, bodyB, collision } = pair;
 
-            body.plugin.deformation = deformation;
-            body.plugin.deformationAngle = angle;
+        // Apply pressure to both bodies
+        const applyPressure = (
+          body: Matter.Body,
+          other: Matter.Body,
+          normal: Matter.Vector,
+        ) => {
+          if (body.isStatic) return;
+
+          // Impact or steady pressure - reduced intensity for subtle effect
+          const overlap = collision.depth;
+          const angle = Math.atan2(normal.y, normal.x);
+          // Clamp intensity to prevent extreme values
+          const intensity = Math.min(overlap * 0.02, 0.15);
+
+          // Find if we already have a pressure point near this angle
+          let found = false;
+          for (const p of body.plugin.pressures) {
+            const angleDiff = Math.abs(normalizeAngle(p.angle - angle));
+            if (angleDiff < 0.5) {
+              p.intensity = Math.max(p.intensity, intensity);
+              p.targetIntensity = intensity;
+              found = true;
+              break;
+            }
           }
-          return;
-        }
 
-        // Bubble to bubble collision
-        const relVelX = bodyA.velocity.x - bodyB.velocity.x;
-        const relVelY = bodyA.velocity.y - bodyB.velocity.y;
-        const impactMagnitude = Math.sqrt(
-          relVelX * relVelX + relVelY * relVelY,
-        );
+          if (!found) {
+            body.plugin.pressures.push({
+              angle: angle,
+              intensity: intensity,
+              targetIntensity: intensity,
+              active: true,
+            });
+          }
+        };
 
-        if (impactMagnitude > 0.5) {
-          const angle = Math.atan2(
-            bodyB.position.y - bodyA.position.y,
-            bodyB.position.x - bodyA.position.x,
-          );
-          const deformation = Math.min(impactMagnitude * 0.05, 0.3);
-
-          // Both bodies get deformed
-          bodyA.plugin.deformation = deformation;
-          bodyA.plugin.deformationAngle = angle;
-
-          bodyB.plugin.deformation = deformation;
-          bodyB.plugin.deformationAngle = angle + Math.PI;
-        }
+        applyPressure(bodyA, bodyB, collision.normal);
+        // Note: normal usually points from A to B, so for B we negate it
+        applyPressure(bodyB, bodyA, {
+          x: -collision.normal.x,
+          y: -collision.normal.y,
+        });
       });
     });
+
+    const normalizeAngle = (angle: number) => {
+      while (angle > Math.PI) angle -= 2 * Math.PI;
+      while (angle < -Math.PI) angle += 2 * Math.PI;
+      return angle;
+    };
 
     // 5. Constant movement, central gravity and safety checks
     Matter.Events.on(engine, "beforeUpdate", () => {
@@ -265,15 +290,33 @@ export const useBubblePhysics = (
       bodies.forEach((body) => {
         if (body.isStatic) return;
 
-        // Decay deformation (rubber effect)
-        if (body.plugin.deformation) {
-          // Simple spring-like bounce back
-          body.plugin.deformation *= 0.85; // Damping
-          if (body.plugin.deformation < 0.001) {
-            body.plugin.deformation = 0;
-          }
+        // Manage pressures (the "doughy" effect)
+        if (body.plugin.pressures) {
+          body.plugin.pressures.forEach((p: PressurePoint) => {
+            // "Viscous" movement: slowly reach target intensity, then slowly decay
+            if (p.intensity < p.targetIntensity) {
+              p.intensity += (p.targetIntensity - p.intensity) * 0.2;
+            } else {
+              p.intensity *= 0.92; // Damping/Viscosity
+            }
+            // Reset target for next frame so it decays if not colliding
+            p.targetIntensity = 0;
+          });
+
+          // Remove tiny pressures
+          body.plugin.pressures = body.plugin.pressures.filter(
+            (p: PressurePoint) => p.intensity > 0.005,
+          );
         } else {
-          body.plugin.deformation = 0;
+          body.plugin.pressures = [];
+        }
+
+        // Limit number of pressure points to keep rendering fast
+        if (body.plugin.pressures.length > 5) {
+          body.plugin.pressures.sort(
+            (a: PressurePoint, b: PressurePoint) => b.intensity - a.intensity,
+          );
+          body.plugin.pressures = body.plugin.pressures.slice(0, 5);
         }
 
         // 5a. Limit velocity to prevent tunneling (speed capping)
@@ -369,11 +412,14 @@ export const useBubblePhysics = (
             Math.random() * (containerRef.current?.clientHeight || 500);
 
           const body = Matter.Bodies.circle(x, y, radius, {
-            frictionAir: 0.005, // Much lower friction for inertia
-            restitution: 0.9, // More "bouncy"
-            friction: 0.1,
+            frictionAir: 0.04, // Higher friction for a "heavy" feel
+            restitution: 0.3, // Low bounciness for "plastilina"
+            friction: 0.5, // More surface friction
             label: `task-${task.id}`,
-            plugin: { data: task },
+            plugin: {
+              data: task,
+              pressures: [] as PressurePoint[],
+            },
           });
 
           // Give it a tiny initial kick
