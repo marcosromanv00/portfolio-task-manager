@@ -17,6 +17,7 @@ import {
   subWeeks,
   isToday,
 } from "date-fns";
+import { es } from "date-fns/locale";
 import {
   ChevronLeft,
   ChevronRight,
@@ -77,8 +78,8 @@ export default function CalendarPage() {
     <div className="max-w-7xl mx-auto h-[calc(100vh-2rem)] flex flex-col">
       <header className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-1">Calendar</h1>
-          <p className="text-gray-400">Schedule at a glance</p>
+          <h1 className="text-4xl font-bold text-white mb-1">Calendario</h1>
+          <p className="text-gray-400">Tu horario de un vistazo</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -93,7 +94,7 @@ export default function CalendarPage() {
               )}
             >
               <LayoutGrid className="w-4 h-4" />
-              Month
+              Mes
             </button>
             <button
               onClick={() => setViewMode("week")}
@@ -105,7 +106,7 @@ export default function CalendarPage() {
               )}
             >
               <CalIcon className="w-4 h-4" />
-              Week
+              Semana
             </button>
           </div>
 
@@ -122,7 +123,8 @@ export default function CalendarPage() {
             >
               {format(
                 currentDate,
-                viewMode === "month" ? "MMMM yyyy" : "'Week of' MMM d",
+                viewMode === "month" ? "MMMM yyyy" : "'Semana del' d 'de' MMM",
+                { locale: es },
               )}
             </button>
             <button
@@ -138,7 +140,7 @@ export default function CalendarPage() {
       <div className="glass rounded-3xl flex-1 flex flex-col overflow-hidden">
         {/* Days Header */}
         <div className="grid grid-cols-7 border-b border-white/10 bg-white/5">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+          {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map((day) => (
             <div
               key={day}
               className="py-4 text-center text-sm font-medium text-gray-400 uppercase tracking-wider"
@@ -214,7 +216,7 @@ export default function CalendarPage() {
                   ))}
                   {viewMode === "month" && dayTasks.length > 3 && (
                     <div className="text-[10px] text-gray-500 pl-1">
-                      + {dayTasks.length - 3} more
+                      + {dayTasks.length - 3} más
                     </div>
                   )}
                 </div>

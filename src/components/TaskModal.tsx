@@ -108,7 +108,7 @@ export default function TaskModal({
       <div className="w-full max-w-md rounded-2xl bg-slate-900/90 border border-white/10 p-6 shadow-2xl backdrop-blur-md animate-in fade-in zoom-in duration-200">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-white">
-            {taskToEdit ? "Edit Task" : "Create New Task"}
+            {taskToEdit ? "Editar Tarea" : "Crear Nueva Tarea"}
           </h3>
           <button
             onClick={onClose}
@@ -122,13 +122,13 @@ export default function TaskModal({
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-1">
-              Title
+              Título
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="What needs to be done?"
+              placeholder="¿Qué hay que hacer?"
               className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-600"
               autoFocus
             />
@@ -137,13 +137,13 @@ export default function TaskModal({
           {/* Relation (Project, Context, etc) */}
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-1">
-              Relation (e.g. Work, Personal, Project Name)
+              Relación (ej. Trabajo, Personal, Nombre del Proyecto)
             </label>
             <input
               type="text"
               value={relation}
               onChange={(e) => setRelation(e.target.value)}
-              placeholder="Context..."
+              placeholder="Contexto..."
               className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-600"
             />
           </div>
@@ -151,12 +151,12 @@ export default function TaskModal({
           {/* Description */}
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-1">
-              Description (Optional)
+              Descripción (Opcional)
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add details..."
+              placeholder="Añadir detalles..."
               className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none h-24 placeholder:text-slate-600"
             />
           </div>
@@ -165,7 +165,7 @@ export default function TaskModal({
             {/* Priority */}
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-1">
-                Priority
+                Prioridad
               </label>
               <div className="relative">
                 <select
@@ -174,10 +174,10 @@ export default function TaskModal({
                   className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
                 >
                   <option value="-">-</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
+                  <option value="low">Baja</option>
+                  <option value="medium">Media</option>
+                  <option value="high">Alta</option>
+                  <option value="critical">Crítica</option>
                 </select>
               </div>
             </div>
@@ -185,7 +185,7 @@ export default function TaskModal({
             {/* Status */}
             <div>
               <label className="block text-sm font-medium text-slate-400 mb-1">
-                Status
+                Estado
               </label>
               <div className="relative">
                 <select
@@ -194,10 +194,10 @@ export default function TaskModal({
                   className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
                 >
                   <option value="-">-</option>
-                  <option value="todo">To Do</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="done">Done</option>
-                  <option value="archived">Archived</option>
+                  <option value="todo">Por Hacer</option>
+                  <option value="in-progress">En Progreso</option>
+                  <option value="done">Hecho</option>
+                  <option value="archived">Archivado</option>
                 </select>
               </div>
             </div>
@@ -206,7 +206,7 @@ export default function TaskModal({
           {/* Category */}
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-1">
-              Category
+              Categoría
             </label>
             <div className="relative">
               <select
@@ -216,7 +216,7 @@ export default function TaskModal({
                 }
                 className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
               >
-                <option value="">No Category</option>
+                <option value="">Sin Categoría</option>
                 <option value="Activos (Portafolio Plantillas)">
                   Activos (Portafolio Plantillas)
                 </option>
@@ -256,7 +256,7 @@ export default function TaskModal({
             disabled={!title.trim()}
             className="w-full py-3 mt-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]"
           >
-            {taskToEdit ? "Update Task" : "Create Task"}
+            {taskToEdit ? "Actualizar Tarea" : "Crear Tarea"}
           </button>
         </form>
       </div>

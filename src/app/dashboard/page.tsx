@@ -21,36 +21,38 @@ export default function DashboardPage() {
     <div className="max-w-7xl mx-auto space-y-8">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-2">Dashboard</h1>
-          <p className="text-gray-400">Overview of your productivity</p>
+          <h1 className="text-4xl font-bold text-white mb-2">
+            Panel de Control
+          </h1>
+          <p className="text-gray-400">Resumen de tu productividad</p>
         </div>
         <ExportButton />
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          label="Total Tasks"
+          label="Tareas Totales"
           value={totalTasks}
           icon={Circle}
           color="text-blue-400"
           bg="bg-blue-400/10"
         />
         <StatCard
-          label="Completed"
+          label="Completadas"
           value={completedTasks}
           icon={CheckCircle2}
           color="text-green-400"
           bg="bg-green-400/10"
         />
         <StatCard
-          label="Pending"
+          label="Pendientes"
           value={pendingTasks}
           icon={Clock}
           color="text-amber-400"
           bg="bg-amber-400/10"
         />
         <StatCard
-          label="High Priority"
+          label="Prioridad Alta"
           value={highPriorityTasks}
           icon={AlertCircle}
           color="text-red-400"
@@ -62,21 +64,21 @@ export default function DashboardPage() {
         {/* Recent Activity / Chart Placeholder */}
         <div className="glass p-6 rounded-3xl min-h-[300px]">
           <h3 className="text-xl font-semibold text-white mb-6">
-            Recent Activity
+            Actividad Reciente
           </h3>
           <div className="flex items-center justify-center h-full text-gray-500">
-            Chart visualization coming soon
+            Visualización de gráfico próximamente
           </div>
         </div>
 
         {/* Quick Tasks List */}
         <div className="glass p-6 rounded-3xl min-h-[300px]">
           <h3 className="text-xl font-semibold text-white mb-6">
-            Upcoming Deadlines
+            Próximos Vencimientos
           </h3>
           {tasks.filter((t) => t.dueAt).length === 0 ? (
             <p className="text-gray-500 text-center mt-10">
-              No upcoming deadlines.
+              No hay vencimientos próximos.
             </p>
           ) : (
             <div className="space-y-4">

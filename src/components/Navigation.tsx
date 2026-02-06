@@ -13,22 +13,22 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   {
-    label: "Bubble",
+    label: "Burbujas",
     href: "/",
     icon: CircleDashed,
   },
   {
-    label: "Calendar",
+    label: "Calendario",
     href: "/calendar",
     icon: CalendarIcon,
   },
   {
-    label: "List",
+    label: "Lista",
     href: "/list",
     icon: ListTodo,
   },
   {
-    label: "Dashboard",
+    label: "Panel",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
@@ -58,7 +58,7 @@ export function Navigation() {
           B
         </div>
         <span className="absolute left-16 md:left-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-lg md:text-xl font-bold text-white whitespace-nowrap hidden md:block">
-          Bubble
+          Burbujas
         </span>
       </div>
 
@@ -104,7 +104,7 @@ export function Navigation() {
         <button className="flex items-center justify-center md:justify-start h-12 w-12 md:w-full md:px-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
           <Settings className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
           <span className="absolute left-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap font-medium ml-4 hidden md:block">
-            Settings
+            Ajustes
           </span>
         </button>
       </div>

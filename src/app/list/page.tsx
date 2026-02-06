@@ -14,6 +14,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import TaskModal from "@/components/TaskModal";
 import { Task } from "@/lib/types";
@@ -123,8 +124,10 @@ export default function ListPage() {
     <div className="max-w-6xl mx-auto space-y-8">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-2">Task List</h1>
-          <p className="text-gray-400">Manage your tasks in detail</p>
+          <h1 className="text-4xl font-bold text-white mb-2">
+            Lista de Tareas
+          </h1>
+          <p className="text-gray-400">Gestiona tus tareas en detalle</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -132,7 +135,7 @@ export default function ListPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-cyan-400 transition-colors w-5 h-5" />
             <input
               type="text"
-              placeholder="Search tasks..."
+              placeholder="Buscar tareas..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400/50 focus:bg-white/10 transition-all w-64 md:w-80"
@@ -163,7 +166,24 @@ export default function ListPage() {
                 : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10",
             )}
           >
-            {f.charAt(0).toUpperCase() + f.slice(1).replace("-", " ")}
+            {f === "all"
+              ? "Todas"
+              : f === "in-progress"
+                ? "En Progreso"
+                : f === "todo"
+                  ? "Por Hacer"
+                  : f === "done"
+                    ? "Hecho"
+                    : f === "backlog"
+                      ? "Pendientes"
+                      : f === "archived"
+                        ? "Archivado"
+                        : f === "high"
+                          ? "Prioridad Alta"
+                          : f === "critical"
+                            ? "Prioridad Crítica"
+                            : f.charAt(0).toUpperCase() +
+                              f.slice(1).replace("-", " ")}
           </button>
         ))}
       </div>
@@ -172,7 +192,7 @@ export default function ListPage() {
         {filteredAndSortedTasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-500">
             <Filter className="w-12 h-12 mb-4 opacity-20" />
-            <p>No tasks found matching your criteria</p>
+            <p>No se encontraron tareas que coincidan con tu búsqueda</p>
           </div>
         ) : (
           <div className="w-full">
@@ -182,7 +202,7 @@ export default function ListPage() {
                 onClick={() => handleSort("title")}
                 className="flex items-center hover:text-white transition-colors text-left"
               >
-                Task{" "}
+                Tarea{" "}
                 <SortIcon
                   field="title"
                   currentSortField={sortField}
@@ -193,7 +213,7 @@ export default function ListPage() {
                 onClick={() => handleSort("dueAt")}
                 className="hidden md:flex items-center hover:text-white transition-colors"
               >
-                Due Date{" "}
+                Fecha Límite{" "}
                 <SortIcon
                   field="dueAt"
                   currentSortField={sortField}
@@ -204,7 +224,7 @@ export default function ListPage() {
                 onClick={() => handleSort("priority")}
                 className="flex items-center hover:text-white transition-colors justify-end pr-8"
               >
-                Props{" "}
+                Prioridad{" "}
                 <SortIcon
                   field="priority"
                   currentSortField={sortField}
@@ -251,7 +271,9 @@ export default function ListPage() {
                     <div className="flex items-center gap-2 mt-1 md:hidden">
                       {task.dueAt && (
                         <span className="text-xs text-gray-500">
-                          {format(new Date(task.dueAt), "MMM d")}
+                          {format(new Date(task.dueAt), "d MMM", {
+                            locale: es,
+                          })}
                         </span>
                       )}
                       <span
@@ -264,7 +286,13 @@ export default function ListPage() {
                               : "bg-blue-500/20 text-blue-400",
                         )}
                       >
-                        {task.priority}
+                        {task.priority === "critical"
+                          ? "crítica"
+                          : task.priority === "high"
+                            ? "alta"
+                            : task.priority === "medium"
+                              ? "media"
+                              : "baja"}
                       </span>
                     </div>
                   </div>
@@ -274,7 +302,9 @@ export default function ListPage() {
                       <div className="flex items-center gap-1.5">
                         <CalIcon className="w-4 h-4" />
                         <span>
-                          {format(new Date(task.dueAt), "MMM d, yyyy")}
+                          {format(new Date(task.dueAt), "d 'de' MMMM, yyyy", {
+                            locale: es,
+                          })}
                         </span>
                       </div>
                     ) : (
@@ -293,7 +323,13 @@ export default function ListPage() {
                             : "bg-blue-500/20 text-blue-400",
                       )}
                     >
-                      {task.priority}
+                      {task.priority === "critical"
+                        ? "crítica"
+                        : task.priority === "high"
+                          ? "alta"
+                          : task.priority === "medium"
+                            ? "media"
+                            : "baja"}
                     </span>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
