@@ -33,8 +33,8 @@ export const useBubblePhysics = (
     // Actually, user wants "Bubbles with text", standard renderer doesn't support text well.
     // So we'll use a custom render loop, but let's setup the engine first.
 
-    const width = containerRef.current.clientWidth;
-    const height = containerRef.current.clientHeight;
+    const width = containerRef.current.clientWidth || 800;
+    const height = containerRef.current.clientHeight || 600;
 
     // Walls
     const wallThickness = 60;
@@ -160,6 +160,7 @@ export const useBubblePhysics = (
       Matter.Runner.stop(runner);
       Matter.Engine.clear(engine);
       engineRef.current = null;
+      bodiesMap.current.clear();
     };
   }, [containerRef, onDragEnd, onTaskClick]);
 
