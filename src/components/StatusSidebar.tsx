@@ -115,13 +115,13 @@ export function StatusSidebar() {
       className={cn(
         "fixed z-50 transition-all duration-300 group overflow-hidden glass rounded-2xl flex items-center justify-center",
         // Desktop
-        "md:right-4 md:top-4 md:bottom-4 md:flex-col md:w-20 md:py-8",
+        "md:left-auto md:right-4 md:top-4 md:bottom-4 md:flex-col md:w-24 md:py-8 md:h-auto",
         // Mobile
         "left-4 right-4 top-4 flex-row h-16 py-2 px-2",
         isDragging && "ring-2 ring-white/20 shadow-lg shadow-cyan-500/10",
       )}
     >
-      <div className="flex-1 flex flex-row md:flex-col gap-1 md:gap-3 w-full px-1 md:px-2 justify-center items-center">
+      <div className="flex-1 flex flex-row md:flex-col gap-1 md:gap-3 w-full px-1 md:px-2 justify-around items-center">
         {statusItems.map((item, index) => {
           const isHovered = hoveredStatusIndex === index;
           const IconComponent = item.icon;

@@ -83,7 +83,7 @@ export default function Home() {
         <BubbleCanvas onTaskClick={handleTaskClick} />
 
         {/* Overlay UI */}
-        <div className="absolute bottom-8 right-8 flex gap-4 z-20">
+        <div className="absolute bottom-24 md:bottom-8 right-8 md:right-32 flex gap-4 z-20">
           {hasSeedData && (
             <button
               onClick={clearSeedData}

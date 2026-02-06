@@ -47,7 +47,7 @@ export function Navigation() {
       className={cn(
         "fixed z-50 transition-all duration-300 group overflow-hidden glass rounded-2xl flex items-center",
         // Desktop
-        "md:left-4 md:top-4 md:bottom-4 md:flex-col md:py-8 md:px-0",
+        "md:left-4 md:right-auto md:top-4 md:bottom-4 md:flex-col md:py-8 md:px-0",
         isSidebarExpanded ? "md:w-64" : "md:w-20",
         // Mobile
         "left-4 right-4 bottom-4 flex-row py-2 px-4 h-16 md:h-auto",
