@@ -86,6 +86,12 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
   // Track mouse position during drag (within canvas coordinates)
   const mousePosRef = useRef<{ x: number; y: number } | null>(null);
 
+  // Refs for physics functions (to avoid circular dependency)
+  const setSidebarBarrierEnabledRef = useRef<(enabled: boolean) => void>(
+    () => {},
+  );
+  const moveBubbleToCenterRef = useRef<(taskId: string) => void>(() => {});
+
   // Calculate which status zone the position is in
   const getStatusAtPosition = useCallback(
     (
@@ -119,7 +125,7 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
   const handleDragStart = useCallback(
     (taskId: string) => {
       setDragging(true, taskId);
-      setSidebarBarrierEnabled(false);
+      setSidebarBarrierEnabledRef.current(false);
     },
     [setDragging],
   );
@@ -133,7 +139,7 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
       const canvas = canvasRef.current;
 
       // Re-enable sidebar barrier
-      setSidebarBarrierEnabled(true);
+      setSidebarBarrierEnabledRef.current(true);
 
       if (!canvas) {
         setDragging(false, null);
@@ -157,7 +163,7 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
           updateTaskStatus(taskId, status);
 
           // Move bubble to center with pop effect
-          moveBubbleToCenter(taskId);
+          moveBubbleToCenterRef.current(taskId);
 
           // Get status item for color
           const statusItem = STATUS_ITEMS.find((s) => s.status === status);
@@ -194,7 +200,7 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
 
       if (statusFromBody) {
         updateTaskStatus(taskId, statusFromBody);
-        moveBubbleToCenter(taskId);
+        moveBubbleToCenterRef.current(taskId);
 
         const statusItem = STATUS_ITEMS.find(
           (s) => s.status === statusFromBody,
@@ -240,9 +246,10 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
       onTaskClick,
     });
 
-  // Update handleDragStart to use the barrier function from hook
+  // Keep refs updated with the latest functions
   useEffect(() => {
-    // This effect ensures the barrier functions are available
+    setSidebarBarrierEnabledRef.current = setSidebarBarrierEnabled;
+    moveBubbleToCenterRef.current = moveBubbleToCenter;
   }, [setSidebarBarrierEnabled, moveBubbleToCenter]);
 
   // Track mouse position during drag
