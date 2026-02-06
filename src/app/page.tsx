@@ -4,12 +4,10 @@ import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { useTaskStore } from "@/store/useTaskStore";
 import { TaskStatus, Task, TaskCategory } from "@/lib/types";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import TaskModal from "@/components/TaskModal";
 
 import { getTaskColor } from "@/lib/utils";
-
-// ... (existing imports)
 
 // Dynamic import for BubbleCanvas to avoid SSR issues with Matter.js
 const BubbleCanvas = dynamic(() => import("@/components/BubbleCanvas"), {
@@ -19,6 +17,7 @@ const BubbleCanvas = dynamic(() => import("@/components/BubbleCanvas"), {
 export default function Home() {
   const addTask = useTaskStore((state) => state.addTask);
   const tasks = useTaskStore((state) => state.tasks);
+  const deleteTask = useTaskStore((state) => state.deleteTask);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -33,6 +32,11 @@ export default function Home() {
   const handleCreateNew = () => {
     setSelectedTask(null);
     setIsModalOpen(true);
+  };
+
+  const clearSeedData = () => {
+    const seedTasks = tasks.filter((t) => t.relation === "Seed Data");
+    seedTasks.forEach((t) => deleteTask(t.id));
   };
 
   // Seed Data function
@@ -70,8 +74,10 @@ export default function Home() {
     }
   };
 
+  const hasSeedData = tasks.some((t) => t.relation === "Seed Data");
+
   return (
-    <main className="flex min-h-screen flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans">
+    <div className="flex h-full flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans">
       {/* Header / Zones */}
       <header className="h-24 w-full flex border-b border-white/10 z-10 glass-header">
         <div className="flex-1 border-r border-white/10 flex items-center justify-center bg-blue-500/10 backdrop-blur-sm">
@@ -80,22 +86,35 @@ export default function Home() {
         <div className="flex-1 border-r border-white/10 flex items-center justify-center bg-amber-500/10 backdrop-blur-sm">
           <h2 className="text-xl font-bold text-amber-200">In Progress</h2>
         </div>
-        <div className="flex-1 flex items-center justify-center bg-emerald-500/10 backdrop-blur-sm">
+        <div className="flex-1 border-r border-white/10 flex items-center justify-center bg-emerald-500/10 backdrop-blur-sm">
           <h2 className="text-xl font-bold text-emerald-200">Done</h2>
+        </div>
+        <div className="flex-1 flex items-center justify-center bg-rose-500/10 backdrop-blur-sm">
+          <h2 className="text-xl font-bold text-rose-200">Archive</h2>
         </div>
       </header>
 
       {/* Main Canvas Area */}
-      <div className="flex-1 relative w-full h-full">
+      <div className="flex-1 relative w-full overflow-hidden">
         <BubbleCanvas onTaskClick={handleTaskClick} />
 
         {/* Overlay UI */}
         <div className="absolute bottom-8 right-8 flex gap-4 z-20">
+          {hasSeedData && (
+            <button
+              onClick={clearSeedData}
+              className="px-4 py-2 bg-rose-900/50 hover:bg-rose-800 text-rose-100 rounded-full border border-rose-500/50 transition-colors flex items-center gap-2"
+              title="Clear Seed Data"
+            >
+              <Trash2 size={16} />
+              <span>Clear Seed</span>
+            </button>
+          )}
           <button
             onClick={seedData}
             className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-full border border-white/20 transition-colors"
           >
-            Seed Data ({tasks.length})
+            Seed Data ({tasks.filter((t) => t.relation === "Seed Data").length})
           </button>
           <button
             onClick={handleCreateNew}
@@ -112,6 +131,6 @@ export default function Home() {
         onClose={() => setIsModalOpen(false)}
         taskToEdit={selectedTask}
       />
-    </main>
+    </div>
   );
 }

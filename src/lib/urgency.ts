@@ -2,7 +2,12 @@ import { Task } from "./types";
 import { differenceInHours } from "date-fns";
 
 export function calculateUrgency(task: Task): number {
-  if (task.status === "done" || task.status === "discarded") return 0;
+  if (
+    task.status === "done" ||
+    task.status === "discarded" ||
+    task.status === "archived"
+  )
+    return 0;
 
   let score = 0;
 

@@ -56,6 +56,7 @@ export const useTaskStore = create<TaskStore>()(
             done: "#10b981", // emerald
             discarded: "#ef4444", // red
             backlog: "#64748b", // slate
+            archived: "#f43f5e", // rose-500
           };
           return {
             tasks: state.tasks.map((t) =>

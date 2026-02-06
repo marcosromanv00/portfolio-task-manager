@@ -17,7 +17,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <Navigation />
       <main
         className={cn(
-          "pr-4 py-4 h-screen overflow-y-auto scroll-smooth transition-all duration-300",
+          "h-screen transition-all duration-300",
           isSidebarExpanded ? "pl-68" : "pl-24",
         )}
       >

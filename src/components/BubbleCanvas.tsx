@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useCallback } from "react";
 import { useTaskStore } from "@/store/useTaskStore";
 import { useBubblePhysics } from "@/hooks/useBubblePhysics";
 import Matter from "matter-js";
+import { calculateUrgency } from "@/lib/urgency";
 
 interface BubbleCanvasProps {
   onTaskClick?: (taskId: string) => void;
@@ -26,12 +27,14 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
         const width = containerRef.current.clientWidth;
 
         if (position.y < headerHeight) {
-          if (position.x < width / 3) {
+          if (position.x < width / 4) {
             updateTaskStatus(taskId, "todo");
-          } else if (position.x < (width * 2) / 3) {
+          } else if (position.x < width / 2) {
             updateTaskStatus(taskId, "in-progress");
-          } else {
+          } else if (position.x < (width * 3) / 4) {
             updateTaskStatus(taskId, "done");
+          } else {
+            updateTaskStatus(taskId, "archived");
           }
         }
       }
@@ -99,13 +102,26 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const radius = (body as any).circleRadius || 20;
         const taskData = body.plugin.data;
+        const urgency = taskData ? calculateUrgency(taskData) : 0;
+
+        // Calculate Heartbeat
+        let displayRadius = radius;
+        if (urgency > 100) {
+          // Strong heartbeat for critical
+          const pulse = (Math.sin(Date.now() / 150) + 1) * 0.08;
+          displayRadius = radius * (1 + pulse);
+        } else if (urgency > 50) {
+          // Gentle heartbeat for high
+          const pulse = (Math.sin(Date.now() / 300) + 1) * 0.04;
+          displayRadius = radius * (1 + pulse);
+        }
 
         // Draw Bubble
         ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.arc(x, y, displayRadius, 0, 2 * Math.PI);
         const color = taskData?.bubble?.color || "rgba(100, 149, 237, 0.5)";
         ctx.fillStyle = color;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = urgency > 100 ? 20 : 10;
         ctx.shadowColor = color;
         ctx.fill();
         ctx.lineWidth = 2;

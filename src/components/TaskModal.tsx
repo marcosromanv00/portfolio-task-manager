@@ -202,6 +202,7 @@ export default function TaskModal({
                   <option value="todo">To Do</option>
                   <option value="in-progress">In Progress</option>
                   <option value="done">Done</option>
+                  <option value="archived">Archived</option>
                 </select>
               </div>
             </div>

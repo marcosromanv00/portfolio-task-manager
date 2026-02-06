@@ -5,7 +5,8 @@ export type TaskStatus =
   | "in-progress"
   | "done"
   | "discarded"
-  | "backlog";
+  | "backlog"
+  | "archived";
 export type Priority = "low" | "medium" | "high" | "critical";
 
 export type TaskCategory =
@@ -19,7 +20,14 @@ export const TaskSchema = z.object({
   id: z.string().uuid(),
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  status: z.enum(["todo", "in-progress", "done", "discarded", "backlog"]),
+  status: z.enum([
+    "todo",
+    "in-progress",
+    "done",
+    "discarded",
+    "backlog",
+    "archived",
+  ]),
   priority: z.enum(["low", "medium", "high", "critical"]),
   category: z
     .enum([

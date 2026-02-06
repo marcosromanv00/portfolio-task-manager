@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import Matter from "matter-js";
 import { Task } from "@/lib/types";
+import { calculateUrgency } from "@/lib/urgency";
 
 export const useBubblePhysics = (
   containerRef: React.RefObject<HTMLDivElement | null>,
@@ -260,7 +261,8 @@ export const useBubblePhysics = (
       if (!engineRef.current) return;
 
       const world = engineRef.current.world;
-      const currentIds = new Set(tasks.map((t) => t.id));
+      const activeTasks = tasks.filter((t) => t.status !== "archived");
+      const currentIds = new Set(activeTasks.map((t) => t.id));
 
       // Remove deleted tasks
       bodiesMap.current.forEach((body, id) => {
@@ -271,10 +273,13 @@ export const useBubblePhysics = (
       });
 
       // Add/Update tasks
-      tasks.forEach((task) => {
+      activeTasks.forEach((task) => {
+        const urgency = calculateUrgency(task);
+        // Base radius 35, grows with urgency (up to ~85 for max urgency)
+        const radius = 35 + (urgency / 150) * 50;
+
         if (!bodiesMap.current.has(task.id)) {
           // Create new body
-          const radius = task.bubble.radius || 40 + Math.random() * 20;
           const x =
             task.bubble.x ||
             Math.random() * (containerRef.current?.clientWidth || 500);
