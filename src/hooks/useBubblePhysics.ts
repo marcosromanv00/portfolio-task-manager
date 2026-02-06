@@ -275,8 +275,8 @@ export const useBubblePhysics = (
       // Add/Update tasks
       activeTasks.forEach((task) => {
         const urgency = calculateUrgency(task);
-        // Base radius 35, grows with urgency (up to ~85 for max urgency)
-        const radius = 35 + (urgency / 150) * 50;
+        // Base radius 61.25 (35 * 1.75), grows with urgency (up to ~216 total for max urgency)
+        const radius = 61.25 + (urgency / 150) * 87.5; // (35 * 1.75) + (urgency / 150) * (50 * 1.75)
 
         if (!bodiesMap.current.has(task.id)) {
           // Create new body

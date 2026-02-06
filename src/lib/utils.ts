@@ -10,14 +10,14 @@ export const PRIORITY_CONFIG: Record<
   Priority,
   { radius: number; label: string }
 > = {
-  low: { radius: 35, label: "Low" },
-  medium: { radius: 45, label: "Medium" },
-  high: { radius: 60, label: "High" },
-  critical: { radius: 75, label: "Critical" },
+  low: { radius: 61, label: "Low" },
+  medium: { radius: 79, label: "Medium" },
+  high: { radius: 105, label: "High" },
+  critical: { radius: 131, label: "Critical" },
 };
 
 export function getBubbleRadius(priority: Priority) {
-  return PRIORITY_CONFIG[priority]?.radius || 45;
+  return PRIORITY_CONFIG[priority]?.radius || 79;
 }
 
 export const STATUS_COLORS = {
@@ -29,11 +29,11 @@ export const STATUS_COLORS = {
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  "Activos (Portafolio Plantillas)": "#8b5cf6", // violet-500
-  "Trabajo Estable": "#3b82f6", // blue-500
-  "MCPs/Automatización": "#06b6d4", // cyan-500
-  Tesis: "#f59e0b", // amber-500
-  "Admin/Personal": "#10b981", // emerald-500
+  "Activos (Portafolio Plantillas)": "#10b981", // Emerald
+  "Trabajo Estable": "#f59e0b", // Amber
+  "MCPs/Automatización": "#06b6d4", // Cyan
+  Tesis: "#d946ef", // Fuchsia
+  "Admin/Personal": "#f97316", // Orange
 };
 
 export function getTaskColor(status: string, category?: string) {
