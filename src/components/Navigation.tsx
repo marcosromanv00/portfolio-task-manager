@@ -45,20 +45,24 @@ export function Navigation() {
       onMouseEnter={() => setSidebarExpanded(true)}
       onMouseLeave={() => setSidebarExpanded(false)}
       className={cn(
-        "fixed left-4 top-4 bottom-4 flex flex-col items-center py-8 glass rounded-2xl z-50 transition-all duration-300 group overflow-hidden",
-        isSidebarExpanded ? "w-64" : "w-20",
+        "fixed z-50 transition-all duration-300 group overflow-hidden glass rounded-2xl flex items-center",
+        // Desktop
+        "md:left-4 md:top-4 md:bottom-4 md:flex-col md:py-8 md:px-0",
+        isSidebarExpanded ? "md:w-64" : "md:w-20",
+        // Mobile
+        "left-4 right-4 bottom-4 flex-row py-2 px-4 h-16 md:h-auto",
       )}
     >
-      <div className="mb-12 flex items-center justify-center w-full relative">
-        <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 shrink-0 w-20 text-center">
+      <div className="md:mb-12 flex items-center justify-center relative shrink-0">
+        <div className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 w-12 md:w-20 text-center">
           B
         </div>
-        <span className="absolute left-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xl font-bold text-white whitespace-nowrap">
+        <span className="absolute left-16 md:left-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-lg md:text-xl font-bold text-white whitespace-nowrap hidden md:block">
           Bubble
         </span>
       </div>
 
-      <div className="flex-1 flex flex-col gap-4 w-full px-2">
+      <div className="flex-1 flex flex-row md:flex-col justify-around md:justify-start gap-2 md:gap-4 w-full px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -66,7 +70,8 @@ export function Navigation() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center h-12 px-4 rounded-xl transition-all duration-300 relative group/item",
+                "flex items-center justify-center md:justify-start h-12 md:px-4 rounded-xl transition-all duration-300 relative group/item",
+                "w-12 md:w-full",
                 isActive
                   ? "bg-white/10 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
                   : "text-gray-400 hover:text-white hover:bg-white/5",
@@ -74,13 +79,13 @@ export function Navigation() {
             >
               <item.icon
                 className={cn(
-                  "w-6 h-6 shrink-0 transition-transform duration-300",
+                  "w-5 h-5 md:w-6 md:h-6 shrink-0 transition-transform duration-300",
                   isActive && "scale-110",
                 )}
               />
               <span
                 className={cn(
-                  "absolute left-14 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap font-medium",
+                  "absolute left-14 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap font-medium hidden md:block",
                   isActive ? "text-white" : "text-gray-300",
                 )}
               >
@@ -88,17 +93,17 @@ export function Navigation() {
               </span>
 
               {isActive && (
-                <div className="absolute left-0 w-1 h-6 bg-cyan-400 rounded-r-full shadow-[0_0_10px_#22d3ee]" />
+                <div className="absolute bottom-0 md:bottom-auto md:left-0 w-6 md:w-1 h-1 md:h-6 bg-cyan-400 rounded-t-full md:rounded-r-full shadow-[0_0_10px_#22d3ee]" />
               )}
             </Link>
           );
         })}
       </div>
 
-      <div className="w-full px-2">
-        <button className="flex items-center h-12 w-full px-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
-          <Settings className="w-6 h-6 shrink-0" />
-          <span className="absolute left-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap font-medium ml-4">
+      <div className="md:w-full px-2 shrink-0">
+        <button className="flex items-center justify-center md:justify-start h-12 w-12 md:w-full md:px-4 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+          <Settings className="w-5 h-5 md:w-6 md:h-6 shrink-0" />
+          <span className="absolute left-14 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap font-medium ml-4 hidden md:block">
             Settings
           </span>
         </button>

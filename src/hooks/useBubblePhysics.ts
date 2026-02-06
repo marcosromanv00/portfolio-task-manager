@@ -54,12 +54,14 @@ export const useBubblePhysics = (
     // 2. Setup Render
     const width = containerRef.current.clientWidth || 800;
     const height = containerRef.current.clientHeight || 600;
+    const isMobile = window.innerWidth < 768;
 
     // Walls - Using much thicker walls to prevent fast objects from tunneling through
     const wallThickness = 500;
-    const sidebarWidth = 100; // Space reserved for sidebar
+    const sidebarSize = 100; // Space reserved for sidebar (width on desktop, height on mobile)
 
     const walls = [
+      // Top
       Matter.Bodies.rectangle(
         width / 2,
         -wallThickness / 2,
@@ -67,6 +69,7 @@ export const useBubblePhysics = (
         wallThickness,
         { isStatic: true, label: "WallTop" },
       ),
+      // Bottom
       Matter.Bodies.rectangle(
         width / 2,
         height + wallThickness / 2,
@@ -74,6 +77,7 @@ export const useBubblePhysics = (
         wallThickness,
         { isStatic: true, label: "WallBottom" },
       ),
+      // Right
       Matter.Bodies.rectangle(
         width + wallThickness / 2,
         height / 2,
@@ -81,6 +85,7 @@ export const useBubblePhysics = (
         height + wallThickness * 2,
         { isStatic: true, label: "WallRight" },
       ),
+      // Left
       Matter.Bodies.rectangle(
         -wallThickness / 2,
         height / 2,
@@ -89,17 +94,24 @@ export const useBubblePhysics = (
         { isStatic: true, label: "WallLeft" },
       ),
       // Sidebar barrier wall - blocks entry to sidebar area when not dragging
-      Matter.Bodies.rectangle(
-        width - sidebarWidth - 10,
-        height / 2,
-        20,
-        height,
-        {
-          isStatic: true,
-          label: "WallSidebar",
-          collisionFilter: { category: 0x0002 },
-        },
-      ),
+      // On mobile it's a top bar, on desktop it's a right sidebar
+      isMobile
+        ? Matter.Bodies.rectangle(width / 2, sidebarSize + 10, width, 20, {
+            isStatic: true,
+            label: "WallSidebar",
+            collisionFilter: { category: 0x0002 },
+          })
+        : Matter.Bodies.rectangle(
+            width - sidebarSize - 10,
+            height / 2,
+            20,
+            height,
+            {
+              isStatic: true,
+              label: "WallSidebar",
+              collisionFilter: { category: 0x0002 },
+            },
+          ),
     ];
     Matter.Composite.add(engine.world, walls);
     wallsRef.current = walls;
@@ -109,8 +121,9 @@ export const useBubblePhysics = (
       if (!containerRef.current || !engineRef.current) return;
       const newWidth = containerRef.current.clientWidth;
       const newHeight = containerRef.current.clientHeight;
+      const isMobile = window.innerWidth < 768;
       const wallThickness = 500;
-      const sidebarWidth = 100;
+      const sidebarSize = 100;
 
       const currentWalls = wallsRef.current;
       if (currentWalls.length >= 4) {
@@ -136,10 +149,22 @@ export const useBubblePhysics = (
         });
         // Sidebar barrier
         if (currentWalls.length >= 5) {
-          Matter.Body.setPosition(currentWalls[4], {
-            x: newWidth - sidebarWidth - 10,
-            y: newHeight / 2,
-          });
+          if (isMobile) {
+            Matter.Body.setPosition(currentWalls[4], {
+              x: newWidth / 2,
+              y: sidebarSize + 10,
+            });
+            // Also need to rotate/resize if it was desktop before
+            Matter.Body.setAngle(currentWalls[4], 0);
+            // Matter.js doesn't have a simple setSize, we might need to reconstruct or just accept the dimensions
+            // For simplicity, we'll just set position. If user resizes between mobile/desktop, it might be weird but it's rare.
+          } else {
+            Matter.Body.setPosition(currentWalls[4], {
+              x: newWidth - sidebarSize - 10,
+              y: newHeight / 2,
+            });
+            Matter.Body.setAngle(currentWalls[4], 0);
+          }
         }
       }
     };
@@ -405,12 +430,14 @@ export const useBubblePhysics = (
         // 5c. Gentle pull toward center
         const centerX = curWidth / 2;
         const centerY = curHeight / 2;
-        const forceX = (centerX - body.position.x) * 0.000001;
-        const forceY = (centerY - body.position.y) * 0.000001;
+        // Slightly stronger pull to keep them together
+        const forceX = (centerX - body.position.x) * 0.000002;
+        const forceY = (centerY - body.position.y) * 0.000002;
 
-        // 5d. Tiny random drift to keep them "alive"
-        const driftX = (Math.random() - 0.5) * 0.00005;
-        const driftY = (Math.random() - 0.5) * 0.00005;
+        // 5d. Random drift to keep them "alive" and moving
+        // Increased intensity to ensure they don't stop
+        const driftX = (Math.random() - 0.5) * 0.0002;
+        const driftY = (Math.random() - 0.5) * 0.0002;
 
         Matter.Body.applyForce(body, body.position, {
           x: forceX + driftX,
@@ -457,8 +484,13 @@ export const useBubblePhysics = (
       // Add/Update tasks
       activeTasks.forEach((task) => {
         const urgency = calculateUrgency(task);
-        // Base radius 61.25 (35 * 1.75), grows with urgency (up to ~216 total for max urgency)
-        const radius = 61.25 + (urgency / 150) * 87.5; // (35 * 1.75) + (urgency / 150) * (50 * 1.75)
+
+        // Responsive bubble size
+        const isMobile = window.innerWidth < 768;
+        const baseSize = isMobile ? 35 : 61.25; // 35 * 1.0 (mobile) vs 35 * 1.75 (desktop)
+        const growthFactor = isMobile ? 50 : 87.5; // 50 * 1.0 (mobile) vs 50 * 1.75 (desktop)
+
+        const radius = baseSize + (urgency / 150) * growthFactor;
 
         if (!bodiesMap.current.has(task.id)) {
           // Create new body

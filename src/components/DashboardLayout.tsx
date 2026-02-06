@@ -2,6 +2,8 @@
 
 import React from "react";
 import { Navigation } from "@/components/Navigation";
+import { StatusSidebar } from "@/components/StatusSidebar";
+import { PWAInstall } from "@/components/PWAInstall";
 import { useUIStore } from "@/store/useUIStore";
 import { useTaskStore } from "@/store/useTaskStore";
 import { cn } from "@/lib/utils";
@@ -23,10 +25,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <>
       <Navigation />
+      <StatusSidebar />
+      <PWAInstall />
       <main
         className={cn(
           "h-screen transition-all duration-300",
-          isSidebarExpanded ? "pl-68" : "pl-24",
+          // Desktop padding
+          "md:pl-24",
+          isSidebarExpanded && "md:pl-64",
+          // Mobile padding (navigation and status bar are at bottom/top)
+          "pt-20 pb-20 md:pt-0 md:pb-0",
         )}
       >
         {children}

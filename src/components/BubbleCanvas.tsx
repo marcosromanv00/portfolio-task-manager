@@ -101,21 +101,42 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
       canvasWidth: number,
       canvasHeight: number,
     ): TaskStatus | null => {
-      // Check if in sidebar area (right side of canvas)
-      const sidebarX = canvasWidth - SIDEBAR_WIDTH - SIDEBAR_PADDING;
-      if (x < sidebarX) return null;
+      const isMobile = window.innerWidth < 768;
+      const sidebarSize = 100; // Total area occupied by sidebar/topbar
 
-      // Calculate item height based on canvas height
-      const itemCount = STATUS_ITEMS.length;
-      const totalHeight = canvasHeight - SIDEBAR_PADDING * 2;
-      const itemHeight = totalHeight / itemCount;
+      if (isMobile) {
+        // Check if in top bar area
+        if (y > sidebarSize) return null;
 
-      // Find which status
-      const relativeY = y - SIDEBAR_PADDING;
-      const index = Math.floor(relativeY / itemHeight);
+        // Calculate item width based on canvas width
+        const itemCount = STATUS_ITEMS.length;
+        const totalWidth = canvasWidth - SIDEBAR_PADDING * 2;
+        const itemWidth = totalWidth / itemCount;
 
-      if (index >= 0 && index < itemCount) {
-        return STATUS_ITEMS[index].status;
+        // Find which status
+        const relativeX = x - SIDEBAR_PADDING;
+        const index = Math.floor(relativeX / itemWidth);
+
+        if (index >= 0 && index < itemCount) {
+          return STATUS_ITEMS[index].status;
+        }
+      } else {
+        // Desktop - Check if in sidebar area (right side of canvas)
+        const sidebarX = canvasWidth - SIDEBAR_WIDTH - SIDEBAR_PADDING;
+        if (x < sidebarX) return null;
+
+        // Calculate item height based on canvas height
+        const itemCount = STATUS_ITEMS.length;
+        const totalHeight = canvasHeight - SIDEBAR_PADDING * 2;
+        const itemHeight = totalHeight / itemCount;
+
+        // Find which status
+        const relativeY = y - SIDEBAR_PADDING;
+        const index = Math.floor(relativeY / itemHeight);
+
+        if (index >= 0 && index < itemCount) {
+          return STATUS_ITEMS[index].status;
+        }
       }
       return null;
     },
@@ -132,12 +153,9 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
   );
 
   const handleDragEnd = useCallback(
-    (
-      taskId: string,
-      position: { x: number; y: number },
-      _mousePosition: { x: number; y: number },
-    ) => {
+    (taskId: string, position: { x: number; y: number }) => {
       const canvas = canvasRef.current;
+      const isMobile = window.innerWidth < 768;
 
       // Re-enable sidebar barrier
       setSidebarBarrierEnabledRef.current(true);
@@ -169,9 +187,15 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
           // Get status item for color
           const statusItem = STATUS_ITEMS.find((s) => s.status === status);
 
-          // Add pop animation at the right side
-          const popX = canvas.width - SIDEBAR_WIDTH - SIDEBAR_PADDING - 100;
-          const popY = canvas.height / 2;
+          // Add pop animation
+          let popX, popY;
+          if (isMobile) {
+            popX = canvas.width / 2;
+            popY = 150;
+          } else {
+            popX = canvas.width - SIDEBAR_WIDTH - SIDEBAR_PADDING - 100;
+            popY = canvas.height / 2;
+          }
 
           setPopAnimations((prev) => [
             ...prev,
@@ -206,8 +230,15 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
         const statusItem = STATUS_ITEMS.find(
           (s) => s.status === statusFromBody,
         );
-        const popX = canvas.width - SIDEBAR_WIDTH - SIDEBAR_PADDING - 100;
-        const popY = canvas.height / 2;
+
+        let popX, popY;
+        if (isMobile) {
+          popX = canvas.width / 2;
+          popY = 150;
+        } else {
+          popX = canvas.width - SIDEBAR_WIDTH - SIDEBAR_PADDING - 100;
+          popY = canvas.height / 2;
+        }
 
         setPopAnimations((prev) => [
           ...prev,
@@ -325,207 +356,7 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
       // Clear
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-      // ========== DRAW STATUS SIDEBAR ==========
-      const sidebarX = canvasWidth - SIDEBAR_WIDTH - SIDEBAR_PADDING;
-      const itemCount = STATUS_ITEMS.length;
-      const totalSidebarHeight = canvasHeight - SIDEBAR_PADDING * 2;
-      const itemHeight = totalSidebarHeight / itemCount;
-      const iconSize = 24;
-
-      // Get current hover status
-      let hoveredStatusIndex = -1;
-      if (isDragging && mousePosRef.current) {
-        const hoverStatus = getStatusAtPosition(
-          mousePosRef.current.x,
-          mousePosRef.current.y,
-          canvasWidth,
-          canvasHeight,
-        );
-        if (hoverStatus) {
-          hoveredStatusIndex = STATUS_ITEMS.findIndex(
-            (s) => s.status === hoverStatus,
-          );
-        }
-      }
-
-      // Draw sidebar background - only visible when dragging
-      if (isDragging) {
-        ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
-        ctx.beginPath();
-        ctx.roundRect(
-          sidebarX,
-          SIDEBAR_PADDING,
-          SIDEBAR_WIDTH,
-          totalSidebarHeight,
-          16,
-        );
-        ctx.fill();
-
-        // Draw border with glow when dragging
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-        ctx.lineWidth = 2;
-        ctx.shadowColor = "rgba(100, 200, 255, 0.5)";
-        ctx.shadowBlur = 15;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      } else {
-        // Subtle sidebar when not dragging
-        ctx.fillStyle = "rgba(15, 23, 42, 0.3)";
-        ctx.beginPath();
-        ctx.roundRect(
-          sidebarX,
-          SIDEBAR_PADDING,
-          SIDEBAR_WIDTH,
-          totalSidebarHeight,
-          16,
-        );
-        ctx.fill();
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-
-      // Draw each status item
-      STATUS_ITEMS.forEach((item, index) => {
-        const itemY = SIDEBAR_PADDING + index * itemHeight;
-        const centerX = sidebarX + SIDEBAR_WIDTH / 2;
-        const centerY = itemY + itemHeight / 2;
-        const isHovered = hoveredStatusIndex === index;
-
-        // Draw item background on hover
-        if (isHovered && isDragging) {
-          ctx.fillStyle = item.bgColor;
-          ctx.beginPath();
-          ctx.roundRect(
-            sidebarX + 8,
-            itemY + 4,
-            SIDEBAR_WIDTH - 16,
-            itemHeight - 8,
-            8,
-          );
-          ctx.fill();
-
-          // Draw glow
-          ctx.shadowColor = item.color;
-          ctx.shadowBlur = 25;
-          ctx.strokeStyle = item.color;
-          ctx.lineWidth = 3;
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-        }
-
-        // Draw icon circle
-        const circleRadius =
-          isHovered && isDragging ? iconSize / 2 + 6 : iconSize / 2;
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, circleRadius, 0, Math.PI * 2);
-        ctx.fillStyle =
-          isHovered && isDragging
-            ? item.color
-            : isDragging
-              ? `${item.color}aa`
-              : `${item.color}44`;
-        ctx.fill();
-
-        // Draw status indicator inside
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-        ctx.lineWidth = 2;
-        ctx.lineCap = "round";
-
-        const iconAlpha = isDragging ? 1 : 0.5;
-        ctx.globalAlpha = iconAlpha;
-
-        switch (item.status) {
-          case "todo":
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
-            ctx.stroke();
-            break;
-          case "in-progress":
-            ctx.beginPath();
-            ctx.moveTo(centerX - 4, centerY - 6);
-            ctx.lineTo(centerX + 6, centerY);
-            ctx.lineTo(centerX - 4, centerY + 6);
-            ctx.closePath();
-            ctx.stroke();
-            break;
-          case "done":
-            ctx.beginPath();
-            ctx.moveTo(centerX - 5, centerY);
-            ctx.lineTo(centerX - 1, centerY + 4);
-            ctx.lineTo(centerX + 6, centerY - 4);
-            ctx.stroke();
-            break;
-          case "backlog":
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY - 3);
-            ctx.lineTo(centerX, centerY);
-            ctx.lineTo(centerX + 3, centerY + 2);
-            ctx.stroke();
-            break;
-          case "discarded":
-            ctx.beginPath();
-            ctx.moveTo(centerX - 4, centerY - 4);
-            ctx.lineTo(centerX + 4, centerY + 4);
-            ctx.moveTo(centerX + 4, centerY - 4);
-            ctx.lineTo(centerX - 4, centerY + 4);
-            ctx.stroke();
-            break;
-          case "archived":
-            ctx.beginPath();
-            ctx.rect(centerX - 6, centerY - 4, 12, 8);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(centerX - 3, centerY);
-            ctx.lineTo(centerX + 3, centerY);
-            ctx.stroke();
-            break;
-        }
-
-        ctx.globalAlpha = 1;
-
-        // Draw label on hover
-        if (isHovered && isDragging) {
-          ctx.font = "bold 13px Inter, sans-serif";
-          const labelWidth = ctx.measureText(item.label).width + 24;
-
-          ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
-          ctx.beginPath();
-          ctx.roundRect(
-            sidebarX - labelWidth - 12,
-            centerY - 16,
-            labelWidth,
-            32,
-            8,
-          );
-          ctx.fill();
-
-          ctx.strokeStyle = item.color;
-          ctx.lineWidth = 2;
-          ctx.stroke();
-
-          ctx.fillStyle = "#fff";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(item.label, sidebarX - labelWidth / 2 - 12, centerY);
-        }
-      });
-
-      // Draw "Drop here" text when dragging
-      if (isDragging) {
-        ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-        ctx.font = "bold 11px Inter, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "bottom";
-        ctx.fillText(
-          "Drop here",
-          sidebarX + SIDEBAR_WIDTH / 2,
-          canvasHeight - 8,
-        );
-      }
+      const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
       // ========== DRAW POP ANIMATIONS ==========
       const now = Date.now();
@@ -607,7 +438,11 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
 
         // 1. Calculate Heartbeat
         const pulseFrequency = 200 - urgencyFactor * 100;
-        const pulseAmplitude = 0.005 + urgencyFactor * 0.06;
+        // Reduced heartbeat on mobile
+        const pulseAmplitudeBase = isMobile ? 0.003 : 0.005;
+        const pulseAmplitudeGrowth = isMobile ? 0.04 : 0.06;
+        const pulseAmplitude =
+          pulseAmplitudeBase + urgencyFactor * pulseAmplitudeGrowth;
         const pulse =
           (Math.sin(Date.now() / pulseFrequency) + 1) * pulseAmplitude;
         const displayRadius = radius * (1 + pulse);

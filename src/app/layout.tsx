@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "Bubble Task Manager",
   description:
     "A physics-based task manager for a more organic productivity flow",
+  manifest: "/manifest.json",
+  themeColor: "#22d3ee",
+  viewport:
+    "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0",
 };
 
 import { DashboardLayout } from "@/components/DashboardLayout";
