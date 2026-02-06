@@ -6,6 +6,7 @@ import { StatusSidebar } from "@/components/StatusSidebar";
 import { PWAInstall } from "@/components/PWAInstall";
 import { useUIStore } from "@/store/useUIStore";
 import { useTaskStore } from "@/store/useTaskStore";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
@@ -13,6 +14,8 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const pathname = usePathname();
+  const isBubblePage = pathname === "/";
   const { isSidebarExpanded } = useUIStore();
   const { fetchTasks, initialized } = useTaskStore();
 
@@ -25,7 +28,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <>
       <Navigation />
-      <StatusSidebar />
+      {isBubblePage && <StatusSidebar />}
       <PWAInstall />
       <main
         className={cn(
@@ -34,7 +37,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           "md:pl-24",
           isSidebarExpanded && "md:pl-64",
           // Mobile padding (navigation and status bar are at bottom/top)
-          "pt-20 pb-20 md:pt-0 md:pb-0",
+          // Only show top padding on mobile if the StatusSidebar is visible
+          "pb-20 md:pb-0",
+          isBubblePage ? "pt-20 md:pt-0" : "pt-4 md:pt-0",
         )}
       >
         {children}
