@@ -3,9 +3,13 @@
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { useTaskStore } from "@/store/useTaskStore";
-import { TaskStatus, Task } from "@/lib/types";
+import { TaskStatus, Task, TaskCategory } from "@/lib/types";
 import { Plus } from "lucide-react";
 import TaskModal from "@/components/TaskModal";
+
+import { getTaskColor } from "@/lib/utils";
+
+// ... (existing imports)
 
 // Dynamic import for BubbleCanvas to avoid SSR issues with Matter.js
 const BubbleCanvas = dynamic(() => import("@/components/BubbleCanvas"), {
@@ -35,25 +39,32 @@ export default function Home() {
   const seedData = () => {
     const statuses: TaskStatus[] = ["todo", "in-progress", "done"];
     const priorities = ["low", "medium", "high", "critical"] as const;
+    const categories: TaskCategory[] = [
+      "Activos (Portafolio Plantillas)",
+      "Trabajo Estable",
+      "MCPs/Automatización",
+      "Tesis",
+      "Admin/Personal",
+    ];
 
     for (let i = 0; i < 5; i++) {
       const status = statuses[Math.floor(Math.random() * statuses.length)];
+      const category =
+        categories[Math.floor(Math.random() * categories.length)];
+
       addTask({
         title: `Task ${Math.floor(Math.random() * 1000)}`,
         status: status,
         priority: priorities[Math.floor(Math.random() * priorities.length)],
+        category: category,
+        relation: "Seed Data",
         tags: [],
         isGroup: false,
         bubble: {
           x: 200 + Math.random() * 500,
           y: 200 + Math.random() * 500,
           radius: 30 + Math.random() * 30,
-          color:
-            status === "done"
-              ? "#10b981"
-              : status === "in-progress"
-                ? "#f59e0b"
-                : "#3b82f6",
+          color: getTaskColor(status, category),
         },
       });
     }
