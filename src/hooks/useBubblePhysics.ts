@@ -143,8 +143,10 @@ export const useBubblePhysics = (
       },
     );
 
-    // Click Detection
+    // Click Detection (Double Click for Modal)
     let startPoint = { x: 0, y: 0 };
+    let lastClickTime = 0;
+    let lastClickedTaskId: string | null = null;
 
     Matter.Events.on(
       mouseConstraint,
@@ -177,8 +179,22 @@ export const useBubblePhysics = (
           for (const body of clickedBodies) {
             if (body.label && body.label.startsWith("task-")) {
               const taskId = body.label.replace("task-", "");
-              if (onTaskClickRef.current) {
-                onTaskClickRef.current(taskId);
+              const currentTime = Date.now();
+
+              // Double click detection (350ms threshold)
+              if (
+                taskId === lastClickedTaskId &&
+                currentTime - lastClickTime < 350
+              ) {
+                if (onTaskClickRef.current) {
+                  onTaskClickRef.current(taskId);
+                }
+                // Reset to prevent triple click triggering it again
+                lastClickTime = 0;
+                lastClickedTaskId = null;
+              } else {
+                lastClickTime = currentTime;
+                lastClickedTaskId = taskId;
               }
               break;
             }
@@ -187,7 +203,60 @@ export const useBubblePhysics = (
       },
     );
 
-    // 4. Constant movement, central gravity and safety checks
+    // 4. Collision Detection for Deformation
+    Matter.Events.on(engine, "collisionStart", (event) => {
+      event.pairs.forEach((pair) => {
+        const { bodyA, bodyB } = pair;
+
+        // Skip walls for now, or include them if you want bubbles to squash against walls
+        if (bodyA.isStatic || bodyB.isStatic) {
+          // Squash against wall
+          const body = bodyA.isStatic ? bodyB : bodyA;
+          const wall = bodyA.isStatic ? bodyA : bodyB;
+
+          // Impact magnitude based on velocity normal to collision
+          const impactVelocity = Math.sqrt(
+            Math.pow(body.velocity.x, 2) + Math.pow(body.velocity.y, 2),
+          );
+
+          if (impactVelocity > 0.5) {
+            const angle = Math.atan2(
+              body.position.y - wall.position.y,
+              body.position.x - wall.position.x,
+            );
+            const deformation = Math.min(impactVelocity * 0.05, 0.3);
+
+            body.plugin.deformation = deformation;
+            body.plugin.deformationAngle = angle;
+          }
+          return;
+        }
+
+        // Bubble to bubble collision
+        const relVelX = bodyA.velocity.x - bodyB.velocity.x;
+        const relVelY = bodyA.velocity.y - bodyB.velocity.y;
+        const impactMagnitude = Math.sqrt(
+          relVelX * relVelX + relVelY * relVelY,
+        );
+
+        if (impactMagnitude > 0.5) {
+          const angle = Math.atan2(
+            bodyB.position.y - bodyA.position.y,
+            bodyB.position.x - bodyA.position.x,
+          );
+          const deformation = Math.min(impactMagnitude * 0.05, 0.3);
+
+          // Both bodies get deformed
+          bodyA.plugin.deformation = deformation;
+          bodyA.plugin.deformationAngle = angle;
+
+          bodyB.plugin.deformation = deformation;
+          bodyB.plugin.deformationAngle = angle + Math.PI;
+        }
+      });
+    });
+
+    // 5. Constant movement, central gravity and safety checks
     Matter.Events.on(engine, "beforeUpdate", () => {
       const bodies = Matter.Composite.allBodies(engine.world);
       const curWidth = containerRef.current?.clientWidth || 800;
@@ -196,7 +265,18 @@ export const useBubblePhysics = (
       bodies.forEach((body) => {
         if (body.isStatic) return;
 
-        // 4a. Limit velocity to prevent tunneling (speed capping)
+        // Decay deformation (rubber effect)
+        if (body.plugin.deformation) {
+          // Simple spring-like bounce back
+          body.plugin.deformation *= 0.85; // Damping
+          if (body.plugin.deformation < 0.001) {
+            body.plugin.deformation = 0;
+          }
+        } else {
+          body.plugin.deformation = 0;
+        }
+
+        // 5a. Limit velocity to prevent tunneling (speed capping)
         const maxSpeed = 15;
         if (body.speed > maxSpeed) {
           const ratio = maxSpeed / body.speed;
@@ -206,7 +286,7 @@ export const useBubblePhysics = (
           });
         }
 
-        // 4b. Out-of-bounds safety check (if it escapes, bring it back)
+        // 5b. Out-of-bounds safety check (if it escapes, bring it back)
         const buffer = 100;
         if (
           body.position.x < -buffer ||
@@ -221,13 +301,13 @@ export const useBubblePhysics = (
           Matter.Body.setVelocity(body, { x: 0, y: 0 });
         }
 
-        // 4c. Gentle pull toward center
+        // 5c. Gentle pull toward center
         const centerX = curWidth / 2;
         const centerY = curHeight / 2;
         const forceX = (centerX - body.position.x) * 0.000001;
         const forceY = (centerY - body.position.y) * 0.000001;
 
-        // 4d. Tiny random drift to keep them "alive"
+        // 5d. Tiny random drift to keep them "alive"
         const driftX = (Math.random() - 0.5) * 0.00005;
         const driftY = (Math.random() - 0.5) * 0.00005;
 
@@ -238,7 +318,7 @@ export const useBubblePhysics = (
       });
     });
 
-    // 5. Runner
+    // 6. Runner
     const runner = Matter.Runner.create();
     Matter.Runner.run(runner, engine);
     runnerRef.current = runner;
@@ -246,7 +326,8 @@ export const useBubblePhysics = (
     const bodiesMapRef = bodiesMap.current;
 
     return () => {
-      Matter.Events.off(engine, "beforeUpdate", () => {});
+      Matter.Events.off(engine, "collisionStart");
+      Matter.Events.off(engine, "beforeUpdate");
       Matter.Runner.stop(runner);
       Matter.Engine.clear(engine);
       engineRef.current = null;

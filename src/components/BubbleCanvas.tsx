@@ -147,17 +147,35 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
           }
         }
 
+        // 4. Squishy Deformation (Rubber Effect)
+        const deformation = body.plugin.deformation || 0;
+        const deformationAngle = body.plugin.deformationAngle || 0;
+
+        // Volume preservation: squash in one direction, stretch in the other
+        const radiusX = displayRadius * (1 + deformation);
+        const radiusY = displayRadius * (1 - deformation);
+
         // Draw Bubble
         ctx.beginPath();
-        ctx.arc(x, y, displayRadius, 0, 2 * Math.PI);
+        // Use ellipse for deformation
+        ctx.ellipse(x, y, radiusX, radiusY, deformationAngle, 0, 2 * Math.PI);
         ctx.fillStyle = bubbleColor;
-        // Shadow/Glow removed as requested
         ctx.fill();
 
-        // Draw Inset Border (4px inside the circumference)
+        // Draw Inset Border (4px inside)
         ctx.beginPath();
-        // Drawing the stroke at radius - 4px to pull it inside
-        ctx.arc(x, y, Math.max(0, displayRadius - 4), 0, 2 * Math.PI);
+        const borderDist = 4;
+        const borderRadiusX = Math.max(0, radiusX - borderDist);
+        const borderRadiusY = Math.max(0, radiusY - borderDist);
+        ctx.ellipse(
+          x,
+          y,
+          borderRadiusX,
+          borderRadiusY,
+          deformationAngle,
+          0,
+          2 * Math.PI,
+        );
         ctx.lineWidth = lineWidth;
         ctx.strokeStyle = strokeStyle;
         ctx.stroke();
