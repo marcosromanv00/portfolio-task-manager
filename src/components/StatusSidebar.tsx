@@ -8,11 +8,11 @@ import {
   XCircle,
   Archive,
   Clock,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TaskStatus } from "@/lib/types";
 import { useUIStore } from "@/store/useUIStore";
-
 interface StatusItem {
   status: TaskStatus;
   label: string;
@@ -181,6 +181,15 @@ export function StatusSidebar() {
           );
         })}
       </div>
+
+      {/* Refresh Button - Mobile Only */}
+      <button
+        onClick={() => window.location.reload()}
+        className="md:hidden flex items-center justify-center w-12 h-12 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-all ml-2 border-l border-white/10 pl-2"
+        title="Refresh App"
+      >
+        <RefreshCw className="w-5 h-5" />
+      </button>
 
       {/* Drag indicator at bottom/side */}
       {isDragging && (
