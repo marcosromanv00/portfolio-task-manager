@@ -52,6 +52,7 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
   // Render Loop
   useEffect(() => {
     let animationFrameId: number;
+    let lastLogTime = 0;
 
     const render = () => {
       const canvas = canvasRef.current;
@@ -64,12 +65,15 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
       }
 
       // Resize canvas to container
-      if (
-        canvas.width !== containerRef.current!.clientWidth ||
-        canvas.height !== containerRef.current!.clientHeight
-      ) {
-        canvas.width = containerRef.current!.clientWidth;
-        canvas.height = containerRef.current!.clientHeight;
+      const container = containerRef.current;
+      if (container) {
+        if (
+          canvas.width !== container.clientWidth ||
+          canvas.height !== container.clientHeight
+        ) {
+          canvas.width = container.clientWidth;
+          canvas.height = container.clientHeight;
+        }
       }
 
       // Clear
@@ -78,8 +82,16 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
       // Draw Bodies
       const bodies = Matter.Composite.allBodies(engine.world);
 
+      // Debug log every 2 seconds
+      const now = Date.now();
+      if (now - lastLogTime > 2000) {
+        console.log("Rendering frame. Bodies count:", bodies.length);
+        lastLogTime = now;
+      }
+
       bodies.forEach((body) => {
-        if (body.label.startsWith("Wall")) {
+        // Safety check for body label
+        if (!body.label || body.label.startsWith("Wall")) {
           return;
         }
 
@@ -106,7 +118,7 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
         // Draw Text
         if (taskData?.title) {
           ctx.fillStyle = "#fff";
-          ctx.font = "12px sans-serif";
+          ctx.font = "bold 12px sans-serif";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           // Simple truncation
@@ -126,12 +138,12 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [engineRef]);
+  }, [engineRef, tasks]); // Removed .current to fix lint error
 
   return (
     <div
       ref={containerRef}
-      className="w-full h-full relative overflow-hidden bg-slate-900 border border-white/10 rounded-xl shadow-2xl"
+      className="w-full h-full min-h-[500px] relative overflow-hidden bg-slate-900 border border-white/10 rounded-xl shadow-2xl"
     >
       <canvas
         ref={canvasRef}

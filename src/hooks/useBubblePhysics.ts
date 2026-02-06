@@ -16,7 +16,14 @@ export const useBubblePhysics = (
   // Keep track of task IDs to body IDs for syncing
   const bodiesMap = useRef<Map<string, Matter.Body>>(new Map());
 
-  const { onDragEnd, onTaskClick } = options || {};
+  // Use refs for callbacks to prevent engine recreation when they change
+  const onDragEndRef = useRef(options?.onDragEnd);
+  const onTaskClickRef = useRef(options?.onTaskClick);
+
+  useEffect(() => {
+    onDragEndRef.current = options?.onDragEnd;
+    onTaskClickRef.current = options?.onTaskClick;
+  }, [options?.onDragEnd, options?.onTaskClick]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -28,11 +35,7 @@ export const useBubblePhysics = (
 
     engineRef.current = engine;
 
-    // 2. Setup Render (debug renderer for now, or use standard)
-    // We will use standard Matter.Render for MVP Phase 1 to ensure it works, then switch to custom if needed.
-    // Actually, user wants "Bubbles with text", standard renderer doesn't support text well.
-    // So we'll use a custom render loop, but let's setup the engine first.
-
+    // 2. Setup Render
     const width = containerRef.current.clientWidth || 800;
     const height = containerRef.current.clientHeight || 600;
 
@@ -82,89 +85,105 @@ export const useBubblePhysics = (
     Matter.Composite.add(engine.world, mouseConstraint);
 
     // Drag events
-    if (onDragEnd) {
-      Matter.Events.on(
-        mouseConstraint,
-        "enddrag",
-        (e: Matter.IEvent<Matter.MouseConstraint>) => {
-          const event = e as Matter.IEvent<Matter.MouseConstraint> & {
-            body: Matter.Body;
-          };
-          const body = event.body;
-          if (body && body.label && body.label.startsWith("task-")) {
-            const taskId = body.label.replace("task-", "");
-            onDragEnd(taskId, body.position);
+    Matter.Events.on(
+      mouseConstraint,
+      "enddrag",
+      (e: Matter.IEvent<Matter.MouseConstraint>) => {
+        const event = e as Matter.IEvent<Matter.MouseConstraint> & {
+          body: Matter.Body;
+        };
+        const body = event.body;
+        if (body && body.label && body.label.startsWith("task-")) {
+          const taskId = body.label.replace("task-", "");
+          if (onDragEndRef.current) {
+            onDragEndRef.current(taskId, body.position);
           }
-        },
-      );
-    }
+        }
+      },
+    );
 
     // Click Detection
-    if (onTaskClick) {
-      let startPoint = { x: 0, y: 0 };
+    let startPoint = { x: 0, y: 0 };
 
-      Matter.Events.on(
-        mouseConstraint,
-        "mousedown",
-        (e: Matter.IEvent<Matter.MouseConstraint>) => {
-          const event = e as Matter.IEvent<Matter.MouseConstraint> & {
-            mouse: Matter.Mouse;
-          };
-          startPoint = { ...event.mouse.position };
-        },
-      );
+    Matter.Events.on(
+      mouseConstraint,
+      "mousedown",
+      (e: Matter.IEvent<Matter.MouseConstraint>) => {
+        const event = e as Matter.IEvent<Matter.MouseConstraint> & {
+          mouse: Matter.Mouse;
+        };
+        startPoint = { ...event.mouse.position };
+      },
+    );
 
-      Matter.Events.on(
-        mouseConstraint,
-        "mouseup",
-        (e: Matter.IEvent<Matter.MouseConstraint>) => {
-          const event = e as Matter.IEvent<Matter.MouseConstraint> & {
-            mouse: Matter.Mouse;
-          };
-          const endPoint = event.mouse.position;
-          const dist = Math.hypot(
-            endPoint.x - startPoint.x,
-            endPoint.y - startPoint.y,
-          );
+    Matter.Events.on(
+      mouseConstraint,
+      "mouseup",
+      (e: Matter.IEvent<Matter.MouseConstraint>) => {
+        const event = e as Matter.IEvent<Matter.MouseConstraint> & {
+          mouse: Matter.Mouse;
+        };
+        const endPoint = event.mouse.position;
+        const dist = Math.hypot(
+          endPoint.x - startPoint.x,
+          endPoint.y - startPoint.y,
+        );
 
-          if (dist < 5) {
-            // Threshold for click
-            // We need to find if a body was clicked.
-            // MouseConstraint doesn't always have body on mouseup if we didn't drag it?
-            // Actually Query.point is safer.
-            const bodies = Matter.Composite.allBodies(engine.world);
-            const clickedBodies = Matter.Query.point(bodies, endPoint);
+        if (dist < 5) {
+          const bodies = Matter.Composite.allBodies(engine.world);
+          const clickedBodies = Matter.Query.point(bodies, endPoint);
 
-            for (const body of clickedBodies) {
-              if (body.label && body.label.startsWith("task-")) {
-                const taskId = body.label.replace("task-", "");
-                onTaskClick(taskId);
-                break; // Handle only top one
+          for (const body of clickedBodies) {
+            if (body.label && body.label.startsWith("task-")) {
+              const taskId = body.label.replace("task-", "");
+              if (onTaskClickRef.current) {
+                onTaskClickRef.current(taskId);
               }
+              break;
             }
           }
-        },
-      );
-    }
+        }
+      },
+    );
 
-    // 4. Runner
+    // 4. Constant movement and central gravity
+    Matter.Events.on(engine, "beforeUpdate", () => {
+      const bodies = Matter.Composite.allBodies(engine.world);
+      bodies.forEach((body) => {
+        if (body.isStatic) return;
+
+        // 4a. Gentle pull toward center
+        const centerX = (containerRef.current?.clientWidth || 800) / 2;
+        const centerY = (containerRef.current?.clientHeight || 600) / 2;
+        const forceX = (centerX - body.position.x) * 0.000001;
+        const forceY = (centerY - body.position.y) * 0.000001;
+
+        // 4b. Tiny random drift to keep them "alive"
+        const driftX = (Math.random() - 0.5) * 0.00005;
+        const driftY = (Math.random() - 0.5) * 0.00005;
+
+        Matter.Body.applyForce(body, body.position, {
+          x: forceX + driftX,
+          y: forceY + driftY,
+        });
+      });
+    });
+
+    // 5. Runner
     const runner = Matter.Runner.create();
     Matter.Runner.run(runner, engine);
     runnerRef.current = runner;
 
-    // Mouse scroll fix
-    // mouseConstraint.mouse.element.removeEventListener("mousewheel", mouseConstraint.mouse.mousewheel);
-    // mouseConstraint.mouse.element.removeEventListener("DOMMouseScroll", mouseConstraint.mouse.mousewheel);
-
     const bodiesMapRef = bodiesMap.current;
 
     return () => {
+      Matter.Events.off(engine, "beforeUpdate", () => {});
       Matter.Runner.stop(runner);
       Matter.Engine.clear(engine);
       engineRef.current = null;
       bodiesMapRef.clear();
     };
-  }, [containerRef, onDragEnd, onTaskClick]);
+  }, [containerRef]);
 
   // Sync tasks to bodies
   const syncTasks = useCallback(
@@ -186,7 +205,7 @@ export const useBubblePhysics = (
       tasks.forEach((task) => {
         if (!bodiesMap.current.has(task.id)) {
           // Create new body
-          const radius = task.bubble.radius || 40 + Math.random() * 20; // Fallback
+          const radius = task.bubble.radius || 40 + Math.random() * 20;
           const x =
             task.bubble.x ||
             Math.random() * (containerRef.current?.clientWidth || 500);
@@ -195,20 +214,24 @@ export const useBubblePhysics = (
             Math.random() * (containerRef.current?.clientHeight || 500);
 
           const body = Matter.Bodies.circle(x, y, radius, {
-            frictionAir: 0.02,
-            restitution: 0.8,
+            frictionAir: 0.005, // Much lower friction for inertia
+            restitution: 0.9, // More "bouncy"
+            friction: 0.1,
             label: `task-${task.id}`,
-            plugin: { data: task }, // Store task data in body
+            plugin: { data: task },
+          });
+
+          // Give it a tiny initial kick
+          Matter.Body.setVelocity(body, {
+            x: (Math.random() - 0.5) * 2,
+            y: (Math.random() - 0.5) * 2,
           });
 
           Matter.Composite.add(world, body);
           bodiesMap.current.set(task.id, body);
         } else {
-          // Update existing body's plugin data for rendering
-          const existingBody = bodiesMap.current.get(task.id);
-          if (existingBody) {
-            existingBody.plugin.data = task;
-          }
+          const body = bodiesMap.current.get(task.id);
+          if (body) body.plugin.data = task;
         }
       });
     },
