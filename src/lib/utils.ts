@@ -27,3 +27,18 @@ export const STATUS_COLORS = {
   discarded: "#ef4444", // red-500
   backlog: "#64748b", // slate-500
 };
+
+export const CATEGORY_COLORS: Record<string, string> = {
+  "Activos (Portafolio Plantillas)": "#8b5cf6", // violet-500
+  "Trabajo Estable": "#3b82f6", // blue-500
+  "MCPs/Automatización": "#06b6d4", // cyan-500
+  Tesis: "#f59e0b", // amber-500
+  "Admin/Personal": "#10b981", // emerald-500
+};
+
+export function getTaskColor(status: string, category?: string) {
+  if (category && CATEGORY_COLORS[category]) {
+    return CATEGORY_COLORS[category];
+  }
+  return STATUS_COLORS[status as keyof typeof STATUS_COLORS] || "#cbd5e1";
+}

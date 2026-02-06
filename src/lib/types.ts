@@ -8,12 +8,29 @@ export type TaskStatus =
   | "backlog";
 export type Priority = "low" | "medium" | "high" | "critical";
 
+export type TaskCategory =
+  | "Activos (Portafolio Plantillas)"
+  | "Trabajo Estable"
+  | "MCPs/Automatización"
+  | "Tesis"
+  | "Admin/Personal";
+
 export const TaskSchema = z.object({
   id: z.string().uuid(),
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   status: z.enum(["todo", "in-progress", "done", "discarded", "backlog"]),
   priority: z.enum(["low", "medium", "high", "critical"]),
+  category: z
+    .enum([
+      "Activos (Portafolio Plantillas)",
+      "Trabajo Estable",
+      "MCPs/Automatización",
+      "Tesis",
+      "Admin/Personal",
+    ])
+    .optional(),
+  relation: z.string().optional(),
   tags: z.array(z.string()).default([]),
   dueAt: z.date().optional(),
   startAt: z.date().optional(),

@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { useTaskStore } from "@/store/useTaskStore";
-import { Priority, TaskStatus, Task } from "@/lib/types";
-import { getBubbleRadius, STATUS_COLORS } from "@/lib/utils";
+import { Priority, TaskStatus, Task, TaskCategory } from "@/lib/types";
+import { getBubbleRadius, STATUS_COLORS, getTaskColor } from "@/lib/utils";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -22,6 +22,8 @@ export default function TaskModal({
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState<TaskCategory | "">("");
+  const [relation, setRelation] = useState("");
   const [priority, setPriority] = useState<Priority>("medium");
   const [status, setStatus] = useState<TaskStatus>("todo");
 
@@ -33,11 +35,15 @@ export default function TaskModal({
         setDescription(taskToEdit.description || "");
         setPriority(taskToEdit.priority);
         setStatus(taskToEdit.status);
+        setCategory(taskToEdit.category || "");
+        setRelation(taskToEdit.relation || "");
       } else {
         setTitle("");
         setDescription("");
         setPriority("medium");
         setStatus("todo");
+        setCategory("");
+        setRelation("");
       }
     }
   }, [isOpen, taskToEdit]);
@@ -47,6 +53,10 @@ export default function TaskModal({
     if (!title.trim()) return;
 
     const radius = getBubbleRadius(priority);
+    // Cast category to TaskCategory if not empty, else undefined
+    const finalCategory =
+      category === "" ? undefined : (category as TaskCategory);
+    const finalColor = getTaskColor(status, finalCategory);
 
     if (taskToEdit) {
       // Update existing
@@ -55,10 +65,12 @@ export default function TaskModal({
         description,
         status,
         priority,
+        category: finalCategory,
+        relation,
         bubble: {
           ...taskToEdit.bubble,
           radius,
-          color: STATUS_COLORS[status],
+          color: finalColor,
         },
       });
     } else {
@@ -76,13 +88,15 @@ export default function TaskModal({
         description,
         status,
         priority,
+        category: finalCategory,
+        relation,
         tags: [],
         isGroup: false,
         bubble: {
           x,
           y,
           radius,
-          color: STATUS_COLORS[status],
+          color: finalColor,
         },
       });
     }
@@ -120,6 +134,20 @@ export default function TaskModal({
               placeholder="What needs to be done?"
               className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-600"
               autoFocus
+            />
+          </div>
+
+          {/* Relation (Project, Context, etc) */}
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-1">
+              Relation (e.g. Work, Personal, Project Name)
+            </label>
+            <input
+              type="text"
+              value={relation}
+              onChange={(e) => setRelation(e.target.value)}
+              placeholder="Context..."
+              className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-600"
             />
           </div>
 
@@ -172,6 +200,31 @@ export default function TaskModal({
                   <option value="done">Done</option>
                 </select>
               </div>
+            </div>
+          </div>
+
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-slate-400 mb-1">
+              Category
+            </label>
+            <div className="relative">
+              <select
+                value={category}
+                onChange={(e) =>
+                  setCategory(e.target.value as TaskCategory | "")
+                }
+                className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
+              >
+                <option value="">No Category</option>
+                <option value="Activos (Portafolio Plantillas)">
+                  Activos (Portafolio Plantillas)
+                </option>
+                <option value="Trabajo Estable">Trabajo Estable</option>
+                <option value="MCPs/Automatización">MCPs/Automatización</option>
+                <option value="Tesis">Tesis</option>
+                <option value="Admin/Personal">Admin/Personal</option>
+              </select>
             </div>
           </div>
 

@@ -156,11 +156,13 @@ export const useBubblePhysics = (
     // mouseConstraint.mouse.element.removeEventListener("mousewheel", mouseConstraint.mouse.mousewheel);
     // mouseConstraint.mouse.element.removeEventListener("DOMMouseScroll", mouseConstraint.mouse.mousewheel);
 
+    const bodiesMapRef = bodiesMap.current;
+
     return () => {
       Matter.Runner.stop(runner);
       Matter.Engine.clear(engine);
       engineRef.current = null;
-      bodiesMap.current.clear();
+      bodiesMapRef.clear();
     };
   }, [containerRef, onDragEnd, onTaskClick]);
 
