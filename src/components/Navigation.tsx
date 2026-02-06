@@ -34,11 +34,21 @@ const navItems = [
   },
 ];
 
+import { useUIStore } from "@/store/useUIStore";
+
 export function Navigation() {
   const pathname = usePathname();
+  const { isSidebarExpanded, setSidebarExpanded } = useUIStore();
 
   return (
-    <nav className="fixed left-4 top-4 bottom-4 w-20 flex flex-col items-center py-8 glass rounded-2xl z-50 transition-all duration-300 hover:w-64 group overflow-hidden">
+    <nav
+      onMouseEnter={() => setSidebarExpanded(true)}
+      onMouseLeave={() => setSidebarExpanded(false)}
+      className={cn(
+        "fixed left-4 top-4 bottom-4 flex flex-col items-center py-8 glass rounded-2xl z-50 transition-all duration-300 group overflow-hidden",
+        isSidebarExpanded ? "w-64" : "w-20",
+      )}
+    >
       <div className="mb-12 flex items-center justify-center w-full relative">
         <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 shrink-0 w-20 text-center">
           B

@@ -107,6 +107,7 @@ export default function Home() {
       </div>
 
       <TaskModal
+        key={selectedTask?.id ?? "new"}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         taskToEdit={selectedTask}
