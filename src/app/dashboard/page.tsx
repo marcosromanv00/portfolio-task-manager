@@ -3,6 +3,8 @@
 import { useTaskStore } from "@/store/useTaskStore";
 import { CheckCircle2, Circle, AlertCircle, Clock } from "lucide-react";
 
+import { ExportButton } from "@/components/ExportButton";
+
 export default function DashboardPage() {
   const { tasks } = useTaskStore();
 
@@ -17,9 +19,12 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
-      <header>
-        <h1 className="text-4xl font-bold text-white mb-2">Dashboard</h1>
-        <p className="text-gray-400">Overview of your productivity</p>
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-white mb-2">Dashboard</h1>
+          <p className="text-gray-400">Overview of your productivity</p>
+        </div>
+        <ExportButton />
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -112,7 +117,15 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ label, value, icon: Icon, color, bg }: any) {
+interface StatCardProps {
+  label: string;
+  value: number;
+  icon: React.ElementType;
+  color: string;
+  bg: string;
+}
+
+function StatCard({ label, value, icon: Icon, color, bg }: StatCardProps) {
   return (
     <div className="glass p-6 rounded-3xl flex items-start justify-between relative overflow-hidden group">
       <div className="relative z-10">

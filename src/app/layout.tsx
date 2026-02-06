@@ -31,7 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen relative`}
       >
         <Navigation />
-        <main className="pl-28 pr-4 py-4 min-h-screen transition-all duration-300">
+        <main className="pl-24 pr-4 py-4 h-screen overflow-y-auto scroll-smooth">
           {children}
         </main>
       </body>
