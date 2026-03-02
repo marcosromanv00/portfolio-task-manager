@@ -470,7 +470,12 @@ export const useBubblePhysics = (
       if (!engineRef.current) return;
 
       const world = engineRef.current.world;
-      const activeTasks = tasks.filter((t) => t.status !== "archived");
+      const activeTasks = tasks.filter(
+        (t) =>
+          t.status !== "archived" &&
+          t.status !== "done" &&
+          t.status !== "discarded",
+      );
       const currentIds = new Set(activeTasks.map((t) => t.id));
 
       // Remove deleted tasks
