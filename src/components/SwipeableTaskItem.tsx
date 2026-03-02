@@ -68,6 +68,7 @@ export function SwipeableTaskItem({
   };
 
   const isDone = task.status === "done";
+  const isDiscarded = task.status === "discarded";
 
   // When swipe is greater than threshold, change appearance to indicate action ready
   const readyToToggle = offsetX > threshold;
@@ -82,10 +83,10 @@ export function SwipeableTaskItem({
           className={cn(
             "h-full flex items-center px-6 w-1/2 justify-start font-medium text-sm transition-colors duration-200",
             readyToToggle
-              ? isDone
+              ? isDone || isDiscarded
                 ? "bg-amber-500/80 text-white"
                 : "bg-emerald-500/80 text-white"
-              : isDone
+              : isDone || isDiscarded
                 ? "bg-amber-500/20 text-amber-500"
                 : "bg-emerald-500/20 text-emerald-500",
             offsetX > 0 ? "opacity-100" : "opacity-0",
@@ -97,7 +98,7 @@ export function SwipeableTaskItem({
               readyToToggle && "scale-125",
             )}
           />
-          {isDone ? "Deshacer" : "Completar"}
+          {isDiscarded ? "Restaurar" : isDone ? "Deshacer" : "Completar"}
         </div>
 
         {/* Right Side (Swipe Left) - Delete */}
@@ -137,19 +138,23 @@ export function SwipeableTaskItem({
           onClick={() => toggleStatus(task.id, task.status)}
           className={cn(
             "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
-            isDone
+            isDone || isDiscarded
               ? "bg-green-500 border-green-500"
               : "border-gray-500 hover:border-cyan-400",
           )}
         >
-          {isDone && <CheckCircle className="w-4 h-4 text-white" />}
+          {(isDone || isDiscarded) && (
+            <CheckCircle className="w-4 h-4 text-white" />
+          )}
         </button>
 
         <div className="min-w-0">
           <h3
             className={cn(
               "font-medium text-lg truncate transition-colors",
-              isDone ? "text-gray-500 line-through" : "text-gray-200",
+              isDone || isDiscarded
+                ? "text-gray-500 line-through"
+                : "text-gray-200",
             )}
           >
             {task.title}

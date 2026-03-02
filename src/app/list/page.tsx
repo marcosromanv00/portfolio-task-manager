@@ -2,13 +2,7 @@
 
 import { useTaskStore } from "@/store/useTaskStore";
 import { useState, useMemo } from "react";
-import {
-  Search,
-  Filter,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-} from "lucide-react";
+import { Search, Filter, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import TaskModal from "@/components/TaskModal";
@@ -67,6 +61,9 @@ export default function ListPage() {
         } else if (priorityList.includes(filter)) {
           matchesFilter = task.priority === filter;
         }
+      } else {
+        // Exclude discarded tasks from the "all" view
+        matchesFilter = task.status !== "discarded";
       }
 
       return matchesSearch && matchesFilter;
@@ -110,7 +107,12 @@ export default function ListPage() {
   }, [tasks, search, filter, sortField, sortOrder]);
 
   const toggleStatus = (id: string, currentStatus: string) => {
-    updateTask(id, { status: currentStatus === "done" ? "todo" : "done" });
+    // If discarded, restore to todo. Otherwise toggle between done and todo.
+    if (currentStatus === "discarded") {
+      updateTask(id, { status: "todo" });
+    } else {
+      updateTask(id, { status: currentStatus === "done" ? "todo" : "done" });
+    }
   };
 
   const handleSort = (field: SortField) => {
@@ -157,6 +159,7 @@ export default function ListPage() {
           "critical",
           "backlog",
           "archived",
+          "discarded",
         ].map((f) => (
           <button
             key={f}
@@ -180,12 +183,14 @@ export default function ListPage() {
                       ? "Pendientes"
                       : f === "archived"
                         ? "Archivado"
-                        : f === "high"
-                          ? "Prioridad Alta"
-                          : f === "critical"
-                            ? "Prioridad Crítica"
-                            : f.charAt(0).toUpperCase() +
-                              f.slice(1).replace("-", " ")}
+                        : f === "discarded"
+                          ? "Papelera"
+                          : f === "high"
+                            ? "Prioridad Alta"
+                            : f === "critical"
+                              ? "Prioridad Crítica"
+                              : f.charAt(0).toUpperCase() +
+                                f.slice(1).replace("-", " ")}
           </button>
         ))}
       </div>
