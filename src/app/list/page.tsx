@@ -5,19 +5,15 @@ import { useState, useMemo } from "react";
 import {
   Search,
   Filter,
-  Calendar as CalIcon,
-  Trash2,
-  CheckCircle,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Pencil,
 } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+
 import { cn } from "@/lib/utils";
 import TaskModal from "@/components/TaskModal";
 import { Task } from "@/lib/types";
+import { SwipeableTaskItem } from "@/components/SwipeableTaskItem";
 
 type SortField = "title" | "status" | "priority" | "dueAt";
 type SortOrder = "asc" | "desc";
@@ -240,119 +236,13 @@ export default function ListPage() {
             </div>
             <div className="flex-1 overflow-y-auto scrollbar-thin">
               {filteredAndSortedTasks.map((task) => (
-                <div
+                <SwipeableTaskItem
                   key={task.id}
-                  className="grid grid-cols-[auto_1fr_auto_auto] gap-4 p-4 hover:bg-white/5 transition-colors border-b border-white/5 items-center group"
-                >
-                  <button
-                    onClick={() => toggleStatus(task.id, task.status)}
-                    className={cn(
-                      "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
-                      task.status === "done"
-                        ? "bg-green-500 border-green-500"
-                        : "border-gray-500 hover:border-cyan-400",
-                    )}
-                  >
-                    {task.status === "done" && (
-                      <CheckCircle className="w-4 h-4 text-white" />
-                    )}
-                  </button>
-
-                  <div className="min-w-0">
-                    <h3
-                      className={cn(
-                        "font-medium text-lg truncate",
-                        task.status === "done"
-                          ? "text-gray-500 line-through"
-                          : "text-gray-200",
-                      )}
-                    >
-                      {task.title}
-                    </h3>
-                    {task.description && (
-                      <p className="text-gray-500 text-sm truncate max-w-md">
-                        {task.description}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-2 mt-1 md:hidden">
-                      {task.dueAt && (
-                        <span className="text-xs text-gray-500 shrink-0">
-                          {format(new Date(task.dueAt), "d MMM", {
-                            locale: es,
-                          })}
-                        </span>
-                      )}
-                      <span
-                        className={cn(
-                          "text-[10px] px-2 py-0.5 rounded-full uppercase shrink-0 whitespace-nowrap",
-                          task.priority === "critical"
-                            ? "bg-red-500/20 text-red-400"
-                            : task.priority === "high"
-                              ? "bg-orange-500/20 text-orange-400"
-                              : "bg-blue-500/20 text-blue-400",
-                        )}
-                      >
-                        {task.priority === "critical"
-                          ? "crítica"
-                          : task.priority === "high"
-                            ? "alta"
-                            : task.priority === "medium"
-                              ? "media"
-                              : "baja"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="hidden md:flex flex-col items-start text-sm text-gray-400 shrink-0">
-                    {task.dueAt ? (
-                      <div className="flex items-center gap-1.5 whitespace-nowrap">
-                        <CalIcon className="w-4 h-4 shrink-0" />
-                        <span>
-                          {format(new Date(task.dueAt), "d 'de' MMMM, yyyy", {
-                            locale: es,
-                          })}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-center w-full">-</span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-3 shrink-0 justify-end">
-                    <span
-                      className={cn(
-                        "text-[10px] px-2 py-0.5 rounded-full uppercase hidden md:inline-block whitespace-nowrap",
-                        task.priority === "critical"
-                          ? "bg-red-500/20 text-red-400"
-                          : task.priority === "high"
-                            ? "bg-orange-500/20 text-orange-400"
-                            : "bg-blue-500/20 text-blue-400",
-                      )}
-                    >
-                      {task.priority === "critical"
-                        ? "crítica"
-                        : task.priority === "high"
-                          ? "alta"
-                          : task.priority === "medium"
-                            ? "media"
-                            : "baja"}
-                    </span>
-                    <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => setEditingTask(task)}
-                        className="p-2 hover:bg-white/10 text-gray-400 hover:text-cyan-400 rounded-lg transition-colors"
-                      >
-                        <Pencil className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => deleteTask(task.id)}
-                        className="p-2 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  task={task}
+                  toggleStatus={toggleStatus}
+                  deleteTask={deleteTask}
+                  setEditingTask={setEditingTask}
+                />
               ))}
             </div>
           </div>
