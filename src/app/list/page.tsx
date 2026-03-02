@@ -127,8 +127,8 @@ export default function ListPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="max-w-6xl mx-auto h-full p-4 md:p-8 flex flex-col gap-6 md:gap-8">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-4xl font-bold text-white mb-2">
             Lista de Tareas
@@ -151,7 +151,7 @@ export default function ListPage() {
       </header>
 
       {/* Filters */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin shrink-0">
         {[
           "all",
           "todo",
@@ -194,15 +194,15 @@ export default function ListPage() {
         ))}
       </div>
 
-      <div className="glass rounded-3xl overflow-hidden min-h-[500px]">
+      <div className="glass rounded-3xl overflow-hidden flex-1 flex flex-col min-h-0">
         {filteredAndSortedTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+          <div className="flex flex-col items-center justify-center flex-1 py-10 text-gray-500">
             <Filter className="w-12 h-12 mb-4 opacity-20" />
             <p>No se encontraron tareas que coincidan con tu búsqueda</p>
           </div>
         ) : (
-          <div className="w-full">
-            <div className="grid grid-cols-[auto_1fr_auto_auto] gap-4 p-4 border-b border-white/10 text-sm font-medium text-gray-500 uppercase tracking-wider bg-white/5">
+          <div className="flex flex-col h-full w-full">
+            <div className="grid grid-cols-[auto_1fr_auto_auto] gap-4 p-4 border-b border-white/10 text-sm font-medium text-gray-500 uppercase tracking-wider bg-white/5 shrink-0">
               <div className="w-8"></div>
               <button
                 onClick={() => handleSort("title")}
@@ -238,7 +238,7 @@ export default function ListPage() {
                 />
               </button>
             </div>
-            <div>
+            <div className="flex-1 overflow-y-auto scrollbar-thin">
               {filteredAndSortedTasks.map((task) => (
                 <div
                   key={task.id}
@@ -247,7 +247,7 @@ export default function ListPage() {
                   <button
                     onClick={() => toggleStatus(task.id, task.status)}
                     className={cn(
-                      "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
+                      "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
                       task.status === "done"
                         ? "bg-green-500 border-green-500"
                         : "border-gray-500 hover:border-cyan-400",
@@ -258,10 +258,10 @@ export default function ListPage() {
                     )}
                   </button>
 
-                  <div>
+                  <div className="min-w-0">
                     <h3
                       className={cn(
-                        "font-medium text-lg",
+                        "font-medium text-lg truncate",
                         task.status === "done"
                           ? "text-gray-500 line-through"
                           : "text-gray-200",
@@ -276,7 +276,7 @@ export default function ListPage() {
                     )}
                     <div className="flex items-center gap-2 mt-1 md:hidden">
                       {task.dueAt && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 shrink-0">
                           {format(new Date(task.dueAt), "d MMM", {
                             locale: es,
                           })}
@@ -284,7 +284,7 @@ export default function ListPage() {
                       )}
                       <span
                         className={cn(
-                          "text-[10px] px-2 py-0.5 rounded-full uppercase",
+                          "text-[10px] px-2 py-0.5 rounded-full uppercase shrink-0 whitespace-nowrap",
                           task.priority === "critical"
                             ? "bg-red-500/20 text-red-400"
                             : task.priority === "high"
@@ -303,10 +303,10 @@ export default function ListPage() {
                     </div>
                   </div>
 
-                  <div className="hidden md:flex flex-col items-start text-sm text-gray-400">
+                  <div className="hidden md:flex flex-col items-start text-sm text-gray-400 shrink-0">
                     {task.dueAt ? (
-                      <div className="flex items-center gap-1.5">
-                        <CalIcon className="w-4 h-4" />
+                      <div className="flex items-center gap-1.5 whitespace-nowrap">
+                        <CalIcon className="w-4 h-4 shrink-0" />
                         <span>
                           {format(new Date(task.dueAt), "d 'de' MMMM, yyyy", {
                             locale: es,
@@ -314,14 +314,14 @@ export default function ListPage() {
                         </span>
                       </div>
                     ) : (
-                      <span>-</span>
+                      <span className="text-center w-full">-</span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 shrink-0 justify-end">
                     <span
                       className={cn(
-                        "text-[10px] px-2 py-0.5 rounded-full uppercase hidden md:inline-block",
+                        "text-[10px] px-2 py-0.5 rounded-full uppercase hidden md:inline-block whitespace-nowrap",
                         task.priority === "critical"
                           ? "bg-red-500/20 text-red-400"
                           : task.priority === "high"
@@ -337,7 +337,7 @@ export default function ListPage() {
                             ? "media"
                             : "baja"}
                     </span>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => setEditingTask(task)}
                         className="p-2 hover:bg-white/10 text-gray-400 hover:text-cyan-400 rounded-lg transition-colors"

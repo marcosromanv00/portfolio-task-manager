@@ -192,13 +192,16 @@ export function StatusSidebar() {
       </button>
 
       {/* Drag indicator at bottom/side */}
-      {isDragging && (
-        <div className="hidden md:block mt-4 px-2">
-          <div className="text-xs text-white/40 text-center font-medium">
-            Suelta aquí
-          </div>
+      <div
+        className={cn(
+          "hidden md:block transition-all duration-300 overflow-hidden",
+          isDragging ? "h-16 opacity-100 mt-4 px-2" : "h-0 opacity-0 mt-0 px-0",
+        )}
+      >
+        <div className="text-xs text-cyan-200/90 text-center font-medium bg-cyan-900/30 rounded-xl p-2 border border-cyan-500/20 shadow-inner">
+          Arrastra una burbuja aquí para cambiar estado
         </div>
-      )}
+      </div>
     </aside>
   );
 }

@@ -6,6 +6,7 @@ import { useTaskStore } from "@/store/useTaskStore";
 import { TaskStatus, Task, TaskCategory } from "@/lib/types";
 import { Plus, Trash2, Database } from "lucide-react";
 import TaskModal from "@/components/TaskModal";
+import { VisualLegend } from "@/components/VisualLegend";
 
 import { getTaskColor } from "@/lib/utils";
 
@@ -85,6 +86,7 @@ export default function Home() {
       {/* Main Canvas Area - Full height now */}
       <div className="flex-1 relative w-full overflow-hidden">
         <BubbleCanvas onTaskClick={handleTaskClick} />
+        <VisualLegend />
 
         {/* Overlay backdrop for menu */}
         {isMenuOpen && (

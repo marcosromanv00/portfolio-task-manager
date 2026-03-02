@@ -532,16 +532,24 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
         if (taskData?.title && radius > 20) {
           const textAlpha = Math.min(1, (radius - 20) / 30);
           ctx.globalAlpha = textAlpha;
+
+          // Add drop shadow for better contrast against bubble colors
+          ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 1;
+
           ctx.fillStyle = "#fff";
-          const fontSize = Math.max(10, Math.floor(radius / 4));
-          ctx.font = `bold ${fontSize}px Inter, sans-serif`;
+          // Increased minimum font size and scaling factor for better readability
+          const fontSize = Math.max(12, Math.floor(radius / 3.2));
+          ctx.font = `600 ${fontSize}px Inter, sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
 
           const words = taskData.title.split(" ");
           const lines: string[] = [];
-          let currentLine = words[0];
-          const maxWidth = radius * 1.5;
+          let currentLine = words[0] || "";
+          const maxWidth = radius * 1.6;
 
           for (let i = 1; i < words.length; i++) {
             const word = words[i];
@@ -553,21 +561,29 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
               currentLine = word;
             }
           }
-          lines.push(currentLine);
+          if (currentLine) lines.push(currentLine);
 
-          const maxLines = Math.floor(radius / (fontSize * 0.6));
+          // Adjusted max lines calculation
+          const maxLines = Math.floor(radius / (fontSize * 0.7));
           const finalLines = lines.slice(0, maxLines);
-          if (lines.length > maxLines) {
+          if (lines.length > maxLines && finalLines.length > 0) {
             finalLines[finalLines.length - 1] += "...";
           }
 
-          const lineHeight = fontSize * 1.2;
+          const lineHeight = fontSize * 1.25;
           const totalHeight = finalLines.length * lineHeight;
           const startY = y - totalHeight / 2 + lineHeight / 2;
 
           finalLines.forEach((line, index) => {
             ctx.fillText(line, x, startY + index * lineHeight);
           });
+
+          // Reset shadow so it doesn't affect other rendering
+          ctx.shadowColor = "transparent";
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+
           ctx.globalAlpha = 1;
         }
       });
@@ -598,14 +614,17 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
         ref={canvasRef}
         className="absolute top-0 left-0 w-full h-full block"
       />
-      <div className="absolute top-6 left-6 flex flex-col gap-1 pointer-events-none select-none">
-        <h2 className="text-white/80 font-bold tracking-wider text-lg uppercase">
-          Bubble Workspace
+      <div className="absolute top-6 left-6 flex flex-col gap-1 pointer-events-none select-none z-10 glass-panel px-4 py-3 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-500">
+        <h2 className="text-white/90 font-bold tracking-wide text-lg">
+          Workspace
         </h2>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-          <span className="text-white/40 text-xs font-medium">
-            Live Physics Engine
+          <div className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+          </div>
+          <span className="text-blue-200/60 text-xs font-medium tracking-wide">
+            Physics Engine Active
           </span>
         </div>
       </div>
