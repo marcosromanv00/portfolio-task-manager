@@ -33,13 +33,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <main
         className={cn(
           "h-dvh flex flex-col transition-all duration-300",
-          // Desktop padding
-          "md:pl-24",
-          isSidebarExpanded && "md:pl-64",
-          // Mobile padding (navigation and status bar are at bottom/top)
-          // Only show top padding on mobile if the StatusSidebar is visible
-          "pb-20 md:pb-0",
-          isBubblePage ? "pt-20 md:pt-0" : "pt-4 md:pt-0",
+          // Base padding
+          "p-4 md:p-0",
+          // Desktop sidebar padding (Left)
+          "md:pl-24 md:py-4",
+          isSidebarExpanded && "md:pl-68",
+          // Status sidebar padding (Desktop Right / Mobile Top)
+          isBubblePage ? "pt-20 md:pt-4 md:pr-32" : "pt-4 md:pt-4 md:pr-4",
+          // Bottom navigation padding (Mobile)
+          "pb-24 md:pb-4",
         )}
       >
         {children}

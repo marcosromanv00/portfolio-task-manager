@@ -53,11 +53,13 @@ export function Navigation() {
         "left-4 right-4 bottom-4 flex-row py-2 px-4 h-16 md:h-auto",
       )}
     >
-      <div className="md:mb-12 flex items-center justify-center relative shrink-0">
-        <div className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 w-12 md:w-20 text-center">
-          B
+      <div className="md:mb-12 flex items-center h-16 md:h-20 shrink-0 relative px-4">
+        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.1)]">
+          <span className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-cyan-400 to-purple-500">
+            B
+          </span>
         </div>
-        <span className="absolute left-16 md:left-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-lg md:text-xl font-bold text-white whitespace-nowrap hidden md:block">
+        <span className="ml-4 opacity-0 group-hover:opacity-100 transition-all duration-300 text-lg md:text-xl font-bold text-white whitespace-nowrap hidden md:block">
           Burbujas
         </span>
       </div>
