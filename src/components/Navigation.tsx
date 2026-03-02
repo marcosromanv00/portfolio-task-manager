@@ -59,7 +59,7 @@ export function Navigation() {
             B
           </span>
         </div>
-        <span className="ml-4 opacity-0 group-hover:opacity-100 transition-all duration-300 text-xl font-bold text-white whitespace-nowrap">
+        <span className="absolute left-14 opacity-0 group-hover:opacity-100 transition-all duration-300 text-xl font-bold text-white whitespace-nowrap">
           Burbujas
         </span>
       </div>
