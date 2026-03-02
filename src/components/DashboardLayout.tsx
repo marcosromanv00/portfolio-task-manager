@@ -32,16 +32,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <PWAInstall />
       <main
         className={cn(
-          "h-dvh flex flex-col transition-all duration-300",
-          // Base padding
-          "p-4 md:p-0",
-          // Desktop sidebar padding (Left)
-          "md:pl-24 md:py-4",
-          isSidebarExpanded && "md:pl-68",
-          // Status sidebar padding (Desktop Right / Mobile Top)
-          isBubblePage ? "pt-20 md:pt-4 md:pr-32" : "pt-4 md:pt-4 md:pr-4",
-          // Bottom navigation padding (Mobile)
-          "pb-24 md:pb-4",
+          // Fixed positioning to stay inside the viewport regardless of content
+          "fixed inset-0 flex flex-col overflow-hidden transition-all duration-300",
+          // Desktop: offset from left nav (collapsed=96px, expanded=256px) and right status sidebar (128px)
+          isSidebarExpanded
+            ? "md:left-64 md:right-32"
+            : "md:left-24 md:right-32",
+          // On non-bubble pages there's no status sidebar on the right
+          !isBubblePage && "md:right-0",
+          // Mobile: offset from top status bar and bottom nav
+          isBubblePage ? "top-20 md:top-0" : "top-0",
+          "bottom-20 md:bottom-0",
         )}
       >
         {children}
