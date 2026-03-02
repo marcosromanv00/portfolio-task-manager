@@ -10,7 +10,7 @@ export function VisualLegend() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="absolute top-6 right-6 md:right-32 z-10 w-10 h-10 rounded-full glass flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all shadow-lg"
+        className="absolute top-6 right-6 z-10 w-10 h-10 rounded-full glass flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all shadow-lg"
         title="Show Legend"
       >
         <Info size={20} />
@@ -19,7 +19,7 @@ export function VisualLegend() {
   }
 
   return (
-    <div className="absolute top-6 right-6 md:right-32 z-10 w-64 glass-panel rounded-2xl p-4 text-sm text-slate-200 shadow-2xl animate-in fade-in zoom-in duration-300">
+    <div className="absolute top-6 right-6 z-10 w-64 glass-panel rounded-2xl p-4 text-sm text-slate-200 shadow-2xl animate-in fade-in zoom-in duration-300">
       <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/10">
         <h3 className="font-semibold text-white flex items-center gap-2">
           <Info size={16} className="text-blue-400" />
