@@ -82,7 +82,7 @@ export default function Home() {
   const hasSeedData = tasks.some((t) => t.relation === "Seed Data");
 
   return (
-    <div className="flex h-full flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans">
+    <div className="flex flex-1 flex-col w-full bg-slate-950 text-slate-100 overflow-hidden font-sans relative">
       {/* Main Canvas Area - Full height now */}
       <div className="flex-1 relative w-full overflow-hidden">
         <BubbleCanvas onTaskClick={handleTaskClick} />

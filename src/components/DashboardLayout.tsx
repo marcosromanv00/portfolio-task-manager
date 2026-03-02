@@ -32,7 +32,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <PWAInstall />
       <main
         className={cn(
-          "h-screen transition-all duration-300",
+          "h-dvh flex flex-col transition-all duration-300",
           // Desktop padding
           "md:pl-24",
           isSidebarExpanded && "md:pl-64",

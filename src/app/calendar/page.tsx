@@ -75,8 +75,8 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto h-[calc(100vh-2rem)] flex flex-col">
-      <header className="flex items-center justify-between mb-8">
+    <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col px-4 py-6 md:p-8 overflow-hidden text-slate-100">
+      <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6 md:mb-8 shrink-0">
         <div>
           <h1 className="text-4xl font-bold text-white mb-1">Calendario</h1>
           <p className="text-gray-400">Tu horario de un vistazo</p>
@@ -153,7 +153,7 @@ export default function CalendarPage() {
         {/* Calendar Grid */}
         <div
           className={cn(
-            "grid grid-cols-7 flex-1 bg-white/5",
+            "grid grid-cols-7 flex-1 bg-white/5 overflow-y-auto overflow-x-hidden",
             viewMode === "week" ? "grid-rows-1" : "auto-rows-fr",
           )}
         >
