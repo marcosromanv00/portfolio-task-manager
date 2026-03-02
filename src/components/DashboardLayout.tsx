@@ -34,10 +34,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         className={cn(
           // Fixed positioning to stay inside the viewport regardless of content
           "fixed inset-0 flex flex-col overflow-hidden transition-all duration-300",
-          // Desktop: offset from left nav (collapsed=96px, expanded=256px) and right status sidebar (128px)
+          // Desktop: offset from left nav + 16px gap (collapsed=112px, expanded=288px) and right status sidebar
           isSidebarExpanded
-            ? "md:left-64 md:right-32"
-            : "md:left-24 md:right-32",
+            ? "md:left-72 md:right-32"
+            : "md:left-28 md:right-32",
           // On non-bubble pages there's no status sidebar on the right
           !isBubblePage && "md:right-0",
           // Mobile: offset from top status bar and bottom nav
