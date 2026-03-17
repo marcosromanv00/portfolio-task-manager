@@ -2,13 +2,12 @@ import { z } from "zod";
 
 export type TaskStatus =
   | "todo"
-  | "in-progress"
+  | "in_progress"
   | "done"
   | "discarded"
-  | "backlog"
-  | "archived"
-  | "-";
-export type Priority = "low" | "medium" | "high" | "critical" | "-";
+  | "archived";
+export type Priority = "low" | "medium" | "high" | "critical";
+
 
 export type TaskCategory =
   | "Activos (Portafolio Plantillas)"
@@ -25,14 +24,12 @@ export const TaskSchema = z.object({
   description: z.string().optional(),
   status: z.enum([
     "todo",
-    "in-progress",
+    "in_progress",
     "done",
     "discarded",
-    "backlog",
     "archived",
-    "-",
   ]),
-  priority: z.enum(["low", "medium", "high", "critical", "-"]),
+  priority: z.enum(["low", "medium", "high", "critical"]),
   category: z
     .enum([
       "Activos (Portafolio Plantillas)",

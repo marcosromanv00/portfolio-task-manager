@@ -21,41 +21,36 @@ const STATUS_ITEMS: {
 }[] = [
   {
     status: "todo",
-    label: "To Do",
+    label: "Por Hacer",
     color: "#60a5fa",
     bgColor: "rgba(59, 130, 246, 0.2)",
   },
   {
-    status: "in-progress",
-    label: "In Progress",
+    status: "in_progress",
+    label: "En Progreso",
     color: "#fbbf24",
     bgColor: "rgba(245, 158, 11, 0.2)",
   },
   {
     status: "done",
-    label: "Done",
+    label: "Hecho",
     color: "#34d399",
     bgColor: "rgba(16, 185, 129, 0.2)",
   },
   {
-    status: "backlog",
-    label: "Backlog",
-    color: "#94a3b8",
-    bgColor: "rgba(100, 116, 139, 0.2)",
-  },
-  {
     status: "discarded",
-    label: "Discarded",
+    label: "Descartado",
     color: "#f87171",
     bgColor: "rgba(239, 68, 68, 0.2)",
   },
   {
     status: "archived",
-    label: "Archived",
+    label: "Archivado",
     color: "#fb7185",
     bgColor: "rgba(244, 63, 94, 0.2)",
   },
 ];
+
 
 const SIDEBAR_WIDTH = 80;
 const SIDEBAR_PADDING = 16;
@@ -452,10 +447,11 @@ export default function BubbleCanvas({ onTaskClick }: BubbleCanvasProps) {
 
         const activeStatuses: TaskStatus[] = [
           "todo",
-          "in-progress",
+          "in_progress",
           "done",
           "discarded",
         ];
+
         if (taskData?.status && activeStatuses.includes(taskData.status)) {
           const hue = 240 + urgencyFactor * 120;
           bubbleColor = `hsl(${hue % 360}, 65%, 45%)`;

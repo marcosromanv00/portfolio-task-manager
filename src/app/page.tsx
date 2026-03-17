@@ -45,7 +45,8 @@ export default function Home() {
 
   // Seed Data function
   const seedData = () => {
-    const statuses: TaskStatus[] = ["todo", "in-progress", "done"];
+    const statuses: TaskStatus[] = ["todo", "in_progress", "done"];
+
     const priorities = ["low", "medium", "high", "critical"] as const;
     const categories: TaskCategory[] = [
       "Activos (Portafolio Plantillas)",

@@ -48,12 +48,12 @@ export default function ListPage() {
       if (filter !== "all") {
         const statusList = [
           "todo",
-          "in-progress",
+          "in_progress",
           "done",
           "discarded",
-          "backlog",
           "archived",
         ];
+
         const priorityList = ["low", "medium", "high", "critical"];
 
         if (statusList.includes(filter)) {
@@ -80,12 +80,12 @@ export default function ListPage() {
           break;
         case "priority": {
           const priorityOrder: Record<string, number> = {
-            "-": 0,
             low: 1,
             medium: 2,
             high: 3,
             critical: 4,
           };
+
           comparison =
             (priorityOrder[a.priority] ?? 0) - (priorityOrder[b.priority] ?? 0);
           break;
@@ -153,14 +153,14 @@ export default function ListPage() {
         {[
           "all",
           "todo",
-          "in-progress",
+          "in_progress",
           "done",
           "high",
           "critical",
-          "backlog",
           "archived",
           "discarded",
         ].map((f) => (
+
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -173,15 +173,14 @@ export default function ListPage() {
           >
             {f === "all"
               ? "Todas"
-              : f === "in-progress"
+              : f === "in_progress"
                 ? "En Progreso"
                 : f === "todo"
                   ? "Por Hacer"
                   : f === "done"
                     ? "Hecho"
-                    : f === "backlog"
-                      ? "Pendientes"
-                      : f === "archived"
+                  : f === "archived"
+
                         ? "Archivado"
                         : f === "discarded"
                           ? "Papelera"

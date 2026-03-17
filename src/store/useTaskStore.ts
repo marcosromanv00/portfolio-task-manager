@@ -174,7 +174,7 @@ export const useTaskStore = create<TaskStore>()(
           ),
         }));
 
-        const dbUpdates: any = { ...updates };
+        const dbUpdates = { ...updates } as Record<string, unknown>;
         dbUpdates.updated_at = toISO(updatedAt);
 
         const snakeMappings: Record<string, string> = {
@@ -190,12 +190,13 @@ export const useTaskStore = create<TaskStore>()(
 
         for (const [camel, snake] of Object.entries(snakeMappings)) {
           if (camel in dbUpdates) {
+            const val = dbUpdates[camel];
             // If it's a date field, use toISO
             if (["dueAt", "startAt", "completedAt"].includes(camel)) {
-              if (dbUpdates[camel]) dbUpdates[snake] = toISO(dbUpdates[camel]);
+              if (val) dbUpdates[snake] = toISO(val as Date);
               else dbUpdates[snake] = null; // To clear dates in DB
             } else {
-              dbUpdates[snake] = dbUpdates[camel];
+              dbUpdates[snake] = val;
             }
             delete dbUpdates[camel];
           }
@@ -247,13 +248,12 @@ export const useTaskStore = create<TaskStore>()(
       updateTaskStatus: async (id, status) => {
         const colors: Record<TaskStatus, string> = {
           todo: "#3b82f6",
-          "in-progress": "#f59e0b",
+          in_progress: "#f59e0b",
           done: "#10b981",
           discarded: "#ef4444",
-          backlog: "#64748b",
           archived: "#f43f5e",
-          "-": "#94a3b8",
         };
+
 
         const updatedAt = new Date();
 

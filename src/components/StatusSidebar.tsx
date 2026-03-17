@@ -7,9 +7,10 @@ import {
   CheckCircle2,
   XCircle,
   Archive,
-  Clock,
   RefreshCw,
 } from "lucide-react";
+
+
 import { cn } from "@/lib/utils";
 import { TaskStatus } from "@/lib/types";
 import { useUIStore } from "@/store/useUIStore";
@@ -32,7 +33,7 @@ const statusItems: StatusItem[] = [
     bgActive: "bg-blue-500/30 ring-2 ring-blue-400",
   },
   {
-    status: "in-progress",
+    status: "in_progress",
     label: "En Progreso",
     icon: PlayCircle,
     color: "text-amber-400",
@@ -46,14 +47,6 @@ const statusItems: StatusItem[] = [
     color: "text-emerald-400",
     bgHover: "hover:bg-emerald-500/20",
     bgActive: "bg-emerald-500/30 ring-2 ring-emerald-400",
-  },
-  {
-    status: "backlog",
-    label: "Pendientes",
-    icon: Clock,
-    color: "text-slate-400",
-    bgHover: "hover:bg-slate-500/20",
-    bgActive: "bg-slate-500/30 ring-2 ring-slate-400",
   },
   {
     status: "discarded",
@@ -73,6 +66,7 @@ const statusItems: StatusItem[] = [
   },
 ];
 
+
 export function StatusSidebar() {
   const { isDragging, mousePosition } = useUIStore();
 
@@ -91,10 +85,11 @@ export function StatusSidebar() {
 
       // Calculate status index based on X position
       const barWidth = windowWidth - 32; // padding
-      const itemWidth = barWidth / 6;
+      const itemWidth = barWidth / 5;
+
       const relativeX = mousePosition.x - 16;
       const index = Math.floor(relativeX / itemWidth);
-      return index >= 0 && index < 6 ? index : -1;
+      return index >= 0 && index < 5 ? index : -1;
     } else {
       // Desktop - Right Sidebar
       // Check if mouse is over the sidebar
@@ -102,13 +97,14 @@ export function StatusSidebar() {
 
       // Calculate status index based on Y position
       const sidebarHeight = windowHeight - 32;
-      const itemHeight = sidebarHeight / 6;
+      const itemHeight = sidebarHeight / 5;
       const relativeY = mousePosition.y - 16;
       const index = Math.floor(relativeY / itemHeight);
 
-      return index >= 0 && index < 6 ? index : -1;
+      return index >= 0 && index < 5 ? index : -1;
     }
   }, [isDragging, mousePosition]);
+
 
   return (
     <aside
@@ -169,13 +165,13 @@ export function StatusSidebar() {
                     "absolute inset-0 rounded-xl animate-pulse",
                     `shadow-lg`,
                     item.status === "todo" && "shadow-blue-400/50",
-                    item.status === "in-progress" && "shadow-amber-400/50",
+                    item.status === "in_progress" && "shadow-amber-400/50",
                     item.status === "done" && "shadow-emerald-400/50",
-                    item.status === "backlog" && "shadow-slate-400/50",
                     item.status === "discarded" && "shadow-red-400/50",
                     item.status === "archived" && "shadow-rose-400/50",
                   )}
                 />
+
               )}
             </div>
           );

@@ -5,7 +5,7 @@ export const SEED_TASKS: Omit<Task, "id" | "createdAt" | "updatedAt">[] = [
   {
     title: "Configurar Supabase",
     description: "Crear tabla, políticas RLS y conectar con el cliente",
-    status: "in-progress",
+    status: "in_progress",
     priority: "high",
     category: "MCPs/Automatización",
     tags: ["mcp", "supabase", "database"],
@@ -14,8 +14,9 @@ export const SEED_TASKS: Omit<Task, "id" | "createdAt" | "updatedAt">[] = [
       x: 400,
       y: 300,
       radius: getBubbleRadius("high"),
-      color: getTaskColor("in-progress", "MCPs/Automatización"),
+      color: getTaskColor("in_progress", "MCPs/Automatización"),
     },
+
   },
   {
     title: "Probar Migración",

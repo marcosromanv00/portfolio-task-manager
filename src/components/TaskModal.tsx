@@ -36,9 +36,16 @@ export default function TaskModal({
   const [status, setStatus] = useState<TaskStatus>(
     taskToEdit?.status ?? "todo",
   );
+  const [mtype, setMtype] = useState<Task["mtype"]>(
+    taskToEdit?.mtype ?? "side_quest",
+  );
+  const [difficultyRank, setDifficultyRank] = useState<number>(
+    taskToEdit?.difficultyRank ?? 1,
+  );
   const [dueAt, setDueAt] = useState<Date | null>(
     taskToEdit?.dueAt ? new Date(taskToEdit.dueAt) : null,
   );
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,12 +70,15 @@ export default function TaskModal({
         category: finalCategory,
         relation,
         dueAt: finalDueAt,
+        mtype,
+        difficultyRank,
         bubble: {
           ...taskToEdit.bubble,
           radius,
           color: finalColor,
         },
       });
+
     } else {
       // Create new
       const centerX =
@@ -89,6 +99,8 @@ export default function TaskModal({
         dueAt: finalDueAt,
         tags: [],
         isGroup: false,
+        mtype,
+        difficultyRank,
         bubble: {
           x,
           y,
@@ -96,6 +108,7 @@ export default function TaskModal({
           color: finalColor,
         },
       });
+
     }
 
     onClose();
@@ -173,12 +186,12 @@ export default function TaskModal({
                   onChange={(e) => setPriority(e.target.value as Priority)}
                   className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
                 >
-                  <option value="-">-</option>
-                  <option value="low">Baja</option>
-                  <option value="medium">Media</option>
-                  <option value="high">Alta</option>
-                  <option value="critical">Crítica</option>
+                  <option value="low">Baja (Minor)</option>
+                  <option value="medium">Media (Side Quest)</option>
+                  <option value="high">Alta (Main Story)</option>
+                  <option value="critical">Crítica (Boss Fight)</option>
                 </select>
+
               </div>
             </div>
 
@@ -193,12 +206,13 @@ export default function TaskModal({
                   onChange={(e) => setStatus(e.target.value as TaskStatus)}
                   className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
                 >
-                  <option value="-">-</option>
                   <option value="todo">Por Hacer</option>
-                  <option value="in-progress">En Progreso</option>
+                  <option value="in_progress">En Progreso</option>
                   <option value="done">Hecho</option>
+                  <option value="discarded">Descartado</option>
                   <option value="archived">Archivado</option>
                 </select>
+
               </div>
             </div>
           </div>
@@ -227,6 +241,44 @@ export default function TaskModal({
               </select>
             </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Mission Type */}
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1">
+                Tipo de Misión
+              </label>
+              <select
+                value={mtype}
+                onChange={(e) => setMtype(e.target.value as Task["mtype"])}
+                className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
+              >
+                <option value="side_quest">Side Quest</option>
+                <option value="main_story">Main Story</option>
+                <option value="daily">Daily</option>
+                <option value="boss_fight">Boss Fight</option>
+              </select>
+            </div>
+
+            {/* Difficulty Rank */}
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1">
+                Dificultad (1-5)
+              </label>
+              <select
+                value={difficultyRank}
+                onChange={(e) => setDifficultyRank(parseInt(e.target.value))}
+                className="w-full px-4 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
+              >
+                {[1, 2, 3, 4, 5].map((lvl) => (
+                  <option key={lvl} value={lvl}>
+                    Nivel {lvl}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
 
           {/* Due Date */}
           <div>

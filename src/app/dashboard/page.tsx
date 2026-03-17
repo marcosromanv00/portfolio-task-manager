@@ -11,7 +11,8 @@ export default function DashboardPage() {
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter((t) => t.status === "done").length;
   const pendingTasks = tasks.filter(
-    (t) => t.status === "todo" || t.status === "in-progress",
+    (t) => t.status === "todo" || t.status === "in_progress",
+
   ).length;
   const highPriorityTasks = tasks.filter(
     (t) => t.priority === "high" || t.priority === "critical",
