@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Calendar } from "lucide-react";
+import { X, Calendar, Clock } from "lucide-react";
 import { useTaskStore } from "@/store/useTaskStore";
 import { Priority, TaskStatus, Task, TaskCategory } from "@/lib/types";
 import { getBubbleRadius, getTaskColor } from "@/lib/utils";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -40,11 +39,25 @@ export default function TaskModal({
     taskToEdit?.mtype ?? "side_quest",
   );
   const [difficultyRank, setDifficultyRank] = useState<number>(
+
     taskToEdit?.difficultyRank ?? 1,
   );
-  const [dueAt, setDueAt] = useState<Date | null>(
-    taskToEdit?.dueAt ? new Date(taskToEdit.dueAt) : null,
-  );
+
+  // Helper to split Date into native string formats
+
+  const getInitialStrings = () => {
+    if (!taskToEdit?.dueAt) return { date: "", time: "" };
+    const d = new Date(taskToEdit.dueAt);
+    return {
+      date: d.toISOString().split("T")[0],
+      time: d.toTimeString().slice(0, 5),
+    };
+  };
+
+  const initial = getInitialStrings();
+  const [dueDate, setDueDate] = useState<string>(initial.date);
+  const [dueTime, setDueTime] = useState<string>(initial.time);
+
 
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -57,8 +70,14 @@ export default function TaskModal({
       category === "" ? undefined : (category as TaskCategory);
     const finalColor = getTaskColor(status, finalCategory);
 
-    // dueAt is already a Date or null
-    const finalDueAt = dueAt || undefined;
+    // Construct Date from split strings
+
+    let finalDueAt: Date | undefined = undefined;
+    if (dueDate) {
+      const dateStr = dueTime ? `${dueDate}T${dueTime}` : `${dueDate}T00:00`;
+      finalDueAt = new Date(dateStr);
+    }
+
 
     if (taskToEdit) {
       // Update existing
@@ -280,27 +299,40 @@ export default function TaskModal({
           </div>
 
 
-          {/* Due Date */}
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">
-              <span className="flex items-center gap-2">
-                <Calendar size={14} className="text-blue-400" />
-                Fecha de Entrega (Opcional)
-              </span>
-            </label>
-            <div className="relative modern-datepicker">
-              <DatePicker
-                selected={dueAt}
-                onChange={(date: Date | null) => setDueAt(date)}
-                showTimeSelect
-                dateFormat="Pp"
-                placeholderText="Seleccionar fecha y hora..."
-                className="w-full px-4 py-2.5 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all cursor-pointer"
-                isClearable
-                timeCaption="Hora"
+          {/* Due Date & Time */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1">
+                <span className="flex items-center gap-2">
+                  <Calendar size={13} className="text-cyan-400" />
+                  Entrega
+                </span>
+              </label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 scheme-dark cursor-pointer"
+
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-400 mb-1">
+                <span className="flex items-center gap-2">
+                  <Clock size={13} className="text-cyan-400" />
+                  Hora
+                </span>
+              </label>
+              <input
+                type="time"
+                value={dueTime}
+                onChange={(e) => setDueTime(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-800 rounded-lg border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 scheme-dark cursor-pointer"
+
               />
             </div>
           </div>
+
 
           {/* Submit */}
           <button
