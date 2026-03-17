@@ -17,6 +17,8 @@ export type TaskCategory =
   | "Tesis"
   | "Admin/Personal";
 
+export type MissionType = "side_quest" | "main_story" | "daily" | "boss_fight";
+
 export const TaskSchema = z.object({
   id: z.string().uuid(),
   title: z.string().min(1, "Title is required"),
@@ -49,6 +51,12 @@ export const TaskSchema = z.object({
   parentId: z.string().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  completedAt: z.date().optional(),
+  mtype: z
+    .enum(["side_quest", "main_story", "daily", "boss_fight"])
+    .optional(),
+  difficultyRank: z.number().int().min(1).max(5).optional(),
+  experiencePoints: z.number().int().optional(),
 
   // Visual/Physics State
   bubble: z.object({

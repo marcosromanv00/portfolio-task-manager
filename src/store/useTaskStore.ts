@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { Task, TaskStore, TaskStatus } from "@/lib/types";
+import { Task, TaskStore, TaskStatus, MissionType } from "@/lib/types";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/lib/supabaseClient";
 import { SEED_TASKS } from "@/lib/seeds";
@@ -31,6 +31,10 @@ const mapToDB = (task: Task) => ({
   parent_id: task.parentId,
   created_at: toISO(task.createdAt),
   updated_at: toISO(task.updatedAt),
+  completed_at: toISO(task.completedAt),
+  mtype: task.mtype,
+  difficulty_rank: task.difficultyRank,
+  experience_points: task.experiencePoints,
   bubble: task.bubble,
 });
 
@@ -50,6 +54,10 @@ type PostgrestTask = {
   parent_id?: string;
   created_at: string;
   updated_at: string;
+  completed_at?: string;
+  mtype?: MissionType;
+  difficulty_rank?: number;
+  experience_points?: number;
   bubble: Task["bubble"];
 };
 
@@ -67,6 +75,10 @@ const mapFromDB = (data: PostgrestTask): Task => ({
   startAt: data.start_at ? new Date(data.start_at) : undefined,
   createdAt: new Date(data.created_at),
   updatedAt: new Date(data.updated_at),
+  completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
+  mtype: data.mtype || "side_quest",
+  difficultyRank: data.difficulty_rank || 1,
+  experiencePoints: data.experience_points,
   durationMin: data.duration_min,
   isGroup: data.is_group,
   parentId: data.parent_id,
@@ -162,15 +174,39 @@ export const useTaskStore = create<TaskStore>()(
           ),
         }));
 
+        const dbUpdates: any = { ...updates };
+        dbUpdates.updated_at = toISO(updatedAt);
+
+        const snakeMappings: Record<string, string> = {
+          dueAt: "due_at",
+          startAt: "start_at",
+          completedAt: "completed_at",
+          durationMin: "duration_min",
+          isGroup: "is_group",
+          parentId: "parent_id",
+          difficultyRank: "difficulty_rank",
+          experiencePoints: "experience_points",
+        };
+
+        for (const [camel, snake] of Object.entries(snakeMappings)) {
+          if (camel in dbUpdates) {
+            // If it's a date field, use toISO
+            if (["dueAt", "startAt", "completedAt"].includes(camel)) {
+              if (dbUpdates[camel]) dbUpdates[snake] = toISO(dbUpdates[camel]);
+              else dbUpdates[snake] = null; // To clear dates in DB
+            } else {
+              dbUpdates[snake] = dbUpdates[camel];
+            }
+            delete dbUpdates[camel];
+          }
+        }
+
+        delete dbUpdates.updatedAt;
+        delete dbUpdates.createdAt;
+
         const { error } = await supabase
           .from("tasks")
-          .update({
-            ...updates,
-            updated_at: updatedAt.toISOString(),
-            // Map specific camelCase fields if they exist in updates
-            ...(updates.dueAt && { due_at: updates.dueAt.toISOString() }),
-            ...(updates.startAt && { start_at: updates.startAt.toISOString() }),
-          })
+          .update(dbUpdates)
           .eq("id", id);
 
         if (error) console.error("Error updating task in Supabase:", error);
