@@ -92,15 +92,16 @@ export const useTaskStore = create<TaskStore>()(
       initialized: false,
 
       fetchTasks: async () => {
-        const { data, error } = await supabase
-          .from("tasks")
-          .select("*")
-          .order("created_at", { ascending: true });
+        const { data: responseData, error } = await supabase.functions.invoke("get-tasks-synced", {
+          method: "POST",
+        });
 
         if (error) {
-          console.error("Error fetching tasks from Supabase:", error);
+          console.error("Error syncing tasks from Notion:", error);
           return;
         }
+
+        const data = responseData?.tasks as PostgrestTask[] | undefined;
 
         const localTasks = get().tasks;
 
